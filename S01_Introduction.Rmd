@@ -1,0 +1,760 @@
+---
+title: 'S01: Introduction'
+subtitle: "Analyse de données quantitatives avec R"
+author: Samuel Coavoux
+output:
+  beamer_presentation:
+    toc: true
+    colortheme: beaver
+    highlight: tango
+    theme: Copenhagen
+---
+
+```{r echo=FALSE,warning=FALSE}
+library(knitr)
+#opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE,fig.path='./Plot/plot-', comment="",fig.width=9,fig.height=7,fig.lp="",results="asis")
+options(width=50)
+```
+
+# Le langage R
+
+## Généralités
+
+### Historique
+
+Héritier de S, l'un des premiers langages de programmation statistique, développé par Bell à partir de 1975.
+
+R est une implémentation *libre* de S. *Libre* signifie ici *gratuit* et *open source*.
+
+Longtemps employé principalement par des statisticiens ; désormais employé dans la plupart des champs scientifiques.
+
+En sociologie, encore un jeune langage: poids de SAS dans la statistique publique française ; poids de SPSS, dédié aux sciences sociales, à l'international. Mais R est le langage dominant dans les *jeunes* générations de sociologues quantitativistes.
+
+### Programmation et statistique
+
+R est un **langage de programmation** (Turing-complete). Il pourrait être employé pour écrire des logiciels, comme d'autres langages (C, Python, Java...).
+
+Il est cependant spécifiquement orienté vers l'**analyse statistique**. Il est par conséquent peu adapté pour écrire d'autres logiciels que statistiques.
+
+### Spécificités de R
+
++ Un langage **évolutif**. Il y a:
+  - un **cœur**, les fonctions de base du langage (parfois appelé "R-base", développé par la "R core team") ; 
+  - des **packages**, qui sont des ensembles de fonctions écrits par des programmeurs le plus souvent indépendants (de la R core team).R est apprécié des statisticiens parce qu'il permet d'implémenter facilement de nouvelles méthodes dans de tels packages, et de les diffuser.
++ Un langage **interprété** adapté à l'usage **interactif**. Interprété signifie que le code n'a pas besoin d'être compilé pour être lancé ; l'usage interactif signifie que vous n'avez pas besoin d'écrire l'intégralité d'un programme avant de le lancer : la compilation peut se faire ligne à ligne. Cette particularité fait de R un langage très **rapide** à prendre en main et à utiliser au quotidien, mais aussi **lent** dans ses calculs et parfois **instable**. R demande donc une certaine **discipline** de la part de l'usager.
++ Un langage de programmation **orienté objet**.
++ Des **fonctionnalités graphiques** avancées.
+
+### Rstudio
+
+Rstudio est un **Integrated Development Environment** (IDE) dédié à R, **open-source** et **gratuit** (dans sa version individuelle) développé par la société Rstudio. Il s'agit d'une interface qui facilite la programmation, interactive ou non, avec R. Rstudio offre notamment:
+
++ une vue d'ensemble de l'environnement
++ une aide intégrée
++ l'autocomplétion des fonctions
++ une aide à la mise en forme
+
+Rstudio est désormais l'IDE dominant pour R. La société finance également le travail de développeurs R.
+
+Il existe d'autres moyens d'utiliser R: *Rgui* (environnement graphique diffusé avec R), *Rcmdr* (environnement graphique avec un menu type SPSS), *R* dans un terminal.
+
+## Prise en main
+
+### Prise en main de Rstudio
+
+Quatre fenêtres:
+
++ **Source**: pour écrire le code.
++ **Console**: pour executer le code/écrire les instructions que l'on ne souhaite pas garder en mémoire
++ **Environment / history / git**: pour voir les objets créés
++ **Help / Plots / Packages**: pour voir l'aide et les graphiques
+
+### Où écrire
+
+Dans le script (fenêtre, source), toutes les lignes peuvent être *executés* (c'est-à-dire envoyée vers la console) en cliquant sur Run ou en faisant ctrl+entrée.
+
+Si vous souhaitez écrire un commentaire (quelque chose qui n'est pas un code R), vous pouvez commencer une ligne par #. La ligne ne sera pas executée si vous l'envoyez dans la console. (cela peut également servir à "annuler" des lignes de code dont on ne veut pas qu'elles s'executent).
+
+Le bouton source permet enfin d'éxecuter l'ensemble du script.
+
+### R est d'abord une grosse calculatrice
+
+```{r calcul}
+1 + 3
+450 / 78
+exp(-2)
+```
+
+### Les opérateurs de calculs
+
+On peut utiliser:
+
++ opérations arithmétiques fondamentales: `+`, `-`, `*`, `/`
++ exposant: `^` (`2^2`)
++ reste d'une division euclidienne `%%` (`5 %% 2 = 1`)
++ quotient d'une division euclidienne `%%` (`5 %/% 2 = 2`)
+
+R respecte les règles de précédence de l'arithmétique => `*` et `/` sont exécutés avant `+` et `-`. Comme en arithmétique, on peut employer des parenthèses.
+
+\btwocol
+```{r}
+2 + 3 * 2
+(2 + 3) * 2
+```
+\etwocol
+
+### Objets
+
+Principe : on crée des **objets**, qui stockent des **informations**, et à partir desquels on opère divers **traitements**.
+
+Vocabulaire : **`<-`** est l'"opérateur d'assignement". Il permet de stocker le résultat d'une opération dans un objet. Il s'emploie ainsi:
+
+    nom_objet <- opération
+
+Si aucun objet n'existe avec ce nom, l'objet est **créé** par cette opération ; si un objet de ce nom existe déjà, il **disparaît** et est remplacé par le résultat de l'opération.
+
+### Objets : exemples basiques
+
+```{r objets}
+x <- -8
+y <- 9
+x+8
+truc <- x+y
+truc
+
+```
+
+# Objets
+
+### Nature des objets
+
+Dans R, **tout** est un objet. En effet, on peut distinguer globalement deux types d'objets:
+
++ les vecteurs, qui contiennent des données (`x <- 1`: `x` est un vecteur contenant la valeur 1).
++ les fonctions, qui contiennnent des instructions pour manipuler des vecteurs (`mean(x)` calcule la moyenne du vecteur x).
+
+Tous les objets que vous avez créé au cours d'une session de travail sont affichés dans l'onglet environment de Rstudio ou en employant la fonction `ls()`.
+
+### Syntaxe des noms d'objets
+
++ Éviter les **caractères accentués**
++ R est sensible a la **casse** : `x` et `X` sont deux objets différents
++ Éviter les noms tels que c, q, t, F, T, max, min, data, qui sont des noms de fonctions
++ Les **espaces** sont interdits : utiliser `.` ou `_` (privilégier `_` car `.` est utilisé dans les noms de fonctions pour désigner des méthodes).
+
+### Inspecter un objet : `print()`
+
+La fonction `print()` permet d'imprimer dans la console le contenu d'un objet. La sortie exacte dépend de la nature de l'objet.
+
+```{r}
+x <- 7
+print(x)
+```
+
+Pour tous les objets, taper le nom de l'objet dans la console est équivalent à `print()`.
+
+```{r}
+x
+```
+
+## Les vecteurs
+
+### Vecteurs
+
+Le **vecteur** est un type d'objet qui contient des valeurs dans R. Tous les objets de R qui ne sont pas des fonctions sont des vecteurs.
+
+On les différencie principalement par leur **classe**. `class(x)` renvoie la classe de l'objet `x`.
+
+On distingue les vecteurs unidimensionnels des vecteurs pluridimensionnels: 
+
++ les *vecteurs unidimensionnels* sont des séries de valeurs homogènes (seulement des nombre ; seulement des booléens ; etc.).
++ les *vecteurs pluridimensionnels* sont des assemblages de vecteurs unidimensionnels divers (à l'exception des matrices).
+
+### Classes de vecteurs
+
++ *vecteurs unidimensionnels* :
+	- numeric
+	- integer
+	- character
+	- factor
+	- logical
++ *vecteurs pluridimensionnels* :
+	- list
+	- matrix
+	- data.frame
+
+### Créer un vecteur
+
++ operateur **`c(...)`** (pour combine ou concatenate) : combiner des valeurs
++ operateur **`rep(x, times)`** (pour replicate)
++ operateur **`seq(from, to, by)`** (pour sequence) : créer des séries équidistantes de nombres.
+
+## Vecteurs unidimensionnels
+
+### Numeric
+
+```{r }
+tailles <- c(167, 192, 173, 174, 172, 167, 171)
+tailles
+class(tailles)
+```
+
+### Integer
+
+Pour différencier un integer d'un numeric, on ajoute un L. Les valeurs s'écrivent sans guillemets.
+
+```{r}
+serie <- seq(1L, 10L, by = 1L)
+serie
+class(serie)
+
+```
+
+### Character
+
+Les valeurs d'un vecteur character s'écrivent avec des guillemets. Elles peuvent contenir tous les caractères, y compris des espaces (et donc des sauts de lignes, etc.)
+
+```{r}
+dipl <- c("BEP", "CAP", "Bac", "Licence", "CAP", 
+          "Bac", "Master")
+dipl
+class(dipl)
+```
+
+### Logical
+
+```{r}
+vr <- c(TRUE, FALSE, TRUE, TRUE)
+# Il est légal mais déconseillé d'employer
+# T pour TRUE et
+# F pour FALSE
+vr
+class(vr)
+```
+
+### Factor
+
+Les factor sont une classe à part. En termes de mémoire, il s'agit d'integer ; en termes d'apparence et de comportement, ils ressemblent à des character. Il s'agit largement d'un héritage de S: à l'époque, le fait de stocker des vecteurs character sous format numérique produisait un gain de performance considérable, qui est aujourd'hui le plus souvent négligeable.
+
+Les factor sont des vecteurs character dont le nombre de valeurs différente est fini et connu. On les appelle ses "levels".
+
+### Factor: levels
+
+```{r}
+dipl <- c("BEP", "CAP", "Bac", "Licence", "CAP", 
+          "Bac", "Master")
+class(dipl)
+dipl <- factor(dipl, levels = c("BEP", "CAP", "Bac", "Licence", "Master"))
+class(dipl)
+```
+
+### Attributs des vecteurs
+
+Les vecteurs ont une classe, accessible avec `class()`. 
+
+Les vecteurs unidimensionnels ont également une taille, accessible avec `length()`
+
+```{r}
+dipl <- c("BEP", "CAP", "Bac", "Licence", "CAP", 
+          "Bac", "Master")
+length(dipl) # nombre de valeurs
+```
+
+On note que tous les vecteurs ont une taille, même lorsqu'il n'y a qu'une seule valeur (dans ce cas, le vecteur est de taille 1). Cela différencie R de nombreux autres langages dans lesquels une *valeur* est différente d'une *série de valeur* (d'un vecteur).
+
+### Attributs des vecteurs: valeurs et modalités
+
+On trouve les valeurs uniques que prend un vecteur avec `unique()`.
+
+```{r}
+unique(dipl)
+```
+
+Pour les factor, on peut également accéder aux valeurs avec `levels()`
+
+```{r}
+dipl <- factor(dipl)
+levels(dipl)
+```
+
+### Coup d'œil sur les vecteurs
+
+Pour obtenir des informations de base, on peut utiliser `str()` (structure), qui donne des informations sur la nature du vecteur, ou `summary()` qui s'adapte à la classe pour donner les informations les plus pertinentes (tendance centrale et dispersion pour un vecteur numeric ou integer, tri à plat pour un factor...)
+
+```{r}
+str(1:10)
+summary(1:10)
+```
+
+### Coup d'œil sur les vecteurs
+```{r}
+str(dipl)
+summary(dipl)
+
+```
+
+## Vecteurs pluridimensionnels
+
+### Les vecteurs pluridimensionnels
+
+Il y en a trois types:
+
++ matrix
++ list
++ data.frame
+
+### Matrice
+
+Une matrix n'est pas un assortiment de vecteur, mais un vecteur unique à deux ou plusieurs dimensions.
+
+```{r }
+# Première manière de créer une matrice : on crée 
+# un vecteur et on lui définit deux dimensions
+x <- 1:12
+x
+dim(x) <- c(3,4)
+x
+```
+
+### Matrice (2)
+
+```{r }
+# Deuxième manière : la fonction matrix
+y <- matrix(1:12, nrow=3)
+y
+y <- matrix(1:12, nrow=3, byrow=TRUE) 
+y
+
+```
+
+### Dimensions d'une matrice
+
+```{r}
+dim(y)
+nrow(y)
+ncol(y)
+length(y)
+```
+
+### Listes
+
+Une **liste** est un objet composé d'un ou plusieurs vecteurs. Ces vecteurs peuvent être de n'importe quel type et de n'importe quelle taille.
+
+```{r }
+maliste <- list(lettres = c("a", "b", "c", "d"), 
+                nombres = c(64, 75, 85, 62, 54, 45, 75),
+                valeur_unique = 45)
+```
+
+### Listes
+
+```{r}
+maliste
+```
+
+
+### Listes: accès
+
+On peut accéder à un vecteur unique stocké dans une liste en employant `$` ou `[[`. Avec `$`,on emploie le **nom** des éléments ; avec `[[`, on peut employer soit leur **nom**, soit leur **index** (un integer indiquant leur position dans la liste, en partant de 1)
+
+\btwocol
+```{r}
+maliste$lettres
+maliste[["nombres"]]
+maliste[[3]]
+# Incorrect:
+# maliste$1 
+```
+\etwocol
+
+### Listes: attributs
+
+Une liste à une longueur accessible avec `length()`, qui correspond au nombre d'éléments stockés ; elle a des noms, accessibles avec `names()`, qui renvoie un vecteur character. `str()` décrit la liste
+
+```{r}
+length(maliste)
+names(maliste)
+
+```
+
+### Listes: attributs
+```{r}
+str(maliste)
+```
+
+
+### data.frame
+
+Un **`data.frame`** est une liste composée de vecteurs de même taille. Ces vecteurs peuvent être de différents types (contrairement aux matrices). C'est la classe qui permet de stocker des **bases de données**. Elle est spécifique à R, et elle est primordiale dans R.
+
+```{r }
+df <- data.frame(sexe = c("F", "F", "M"),
+                 dipl = c("Bac", "Licence", "CEP"),
+                 age = c(32, 45, 65))
+str(df)
+
+```
+
+
+### data.frame: stringsAsFactors
+
+Par défaut, la fonction data.frame transforme les vecteurs character en factor. Pour le désactiver, utiliser `stringsAsFactors = FALSE`.
+
+```{r}
+df <- data.frame(sexe = c("F", "F", "M", "F"),
+                 dipl = c("Bac", "Licence", "CEP", "BEP"),
+                 age = c(32, 45, 65, 42),
+                 stringsAsFactors=FALSE)
+str(df)
+
+```
+
+
+### data.frame: accès
+
+Comme la liste, on peut accéder aux vecteurs qui composent le data.frame avec `$` et avec `[[`.
+
+```{r }
+df$sexe
+df[["dipl"]]
+df[[3]]
+```
+
+### data.frame
+
+Le data.frame sert donc à stocker des bases de données. Chaque variable va dans un vecteur. L'obligation d'avoir des vecteurs de taille égale implique que toutes les variables soit renseignées (ou aient une valeur manquante, `NA`) pour chaque individu. 
+
+Par conséquent, chaque ligne d'un data.frame correspond à un individu statistique.
+
+```{r}
+print(df)
+```
+
+### data.frame: attributs
+
+Comme la liste, le data.frame a une taille accessible par `length()`: le nombre de vecteurs stockés ou nombre de variables. On peut également utiliser `ncol()`. `names()` renvoie les noms des vecteurs. `nrow()` donne le nombre d'individus. Là encore, `str()` et `summary()` permettent une vue d'ensemble.
+
+```{r}
+length(df)
+ncol(df)
+names(df)
+nrow(df)
+str(df)
+```
+
+
+## Fonctions
+
+### Principe des fonctions
+
+Nous avons déjà vu de nombreuses fonctions: `str()`, `summary()`, `length()`, `data.frame()` etc.
+
+Les fonctions sont des **objets**, comme les vecteurs. Cela signifie que vous pouvez *en créer de nouvelles* (on verra comment dans les dernières séances) et *accéder et manipuler* le contenu de celles qui existent (en tapant le nom d'une fonction sans parenthèses).
+
+```{r}
+ls()
+# afficher le code de ls()
+# ls
+```
+
+### Contenu d'une fonction
+
+Une fonction:
+
++ a un **nom** (attention à la casse : les fonctions `LDA()` et `lda()`) ;
++ accepte des **arguments** ;
++ *renvoie* (*return*) un **resultat** ;
++ peut effectuer une **action** (dessiner un graph, lire un fichier, etc.).
+
+Exemple : L'opérateur **`c()`** est une fonction qui crée un vecteur
+
+### Arguments
+
++ Entre parenthèses apres le nom de la fonction
++ Permet de préciser ce que l'on souhaite faire : objet sur lequel s'applique la fonction, parametrage...
++ Un argument utilisé dans plusieurs fonctions : `na.rm=TRUE` : demande à R d'ignorer les valeurs manquantes dans le calcul.
+
+```{r }
+ages <- c(167, NA, 192, 168)
+mean(ages)
+mean(ages, na.rm=TRUE)
+
+```
+
+### Opérateurs
+
+Tous les objets dans R sont soit des vecteurs, soit des fonctions. Cela signifie que les opérateurs que l'on a vu, qui ne sont pas des vecteurs, sont aussi des fonctions: `+ - / * %% <- [ [[ $`.
+\btwocol
+```{r}
+4 + 5
+`+`(4, 5)
+maliste$lettres
+`$`(maliste, "lettres")
+```
+\etwocol
+
+# Bonnes pratiques
+
+## Premières régles de programmation
+
+### Source ou console?
+
+Comment savoir si l'on doit taper une instruction dans la source ou dans la console ? La seule question à se poser est la suivante : si je dois refaire l'analyse demain, est-ce que j'aurais à nouveau besoin de cette instruction?
+
++ instructions qui modifient R ou Rstudio (`install.packages()`, `update.packages()`, etc.) -> dans la console
++ instructions qui me permettent de savoir où j'en suis de l'analyse (`str(x)`, `ls()`, etc.) -> le plus souvent dans la console
++ instructions qui modifient des objets et/ou produisent des résultats statistiques -> **dans la source**
+
+### Commentaires
+
+Commenter votre code ! L'intérêt de la programmation statistique est que l'on garde une trace écrite de ce que l'on fait. Mais encore faut-il pouvoir relire et comprendre cette trace. La règle du commentaire : **vous devez pouvoir comprendre ce que vous avez fait si vous ouvrez un fichier un mois après y avoir touché pour la dernière fois**.
+
+Usages des commentaires:
+
++ faire des parties, structurer le code (également, utiliser des scripts différents pour chaque opération)
++ expliquer les passages complexes (usages inhabituel d'une fonction, création d'une fonction spécifique, imbrication de multiples fonctions)
++ expliquer les étapes d'un travail
+
+### Propreté du code : espaces
+
+Quelques conseils de base (cf. <http://adv-r.had.co.nz/Style.html>, <https://google.github.io/styleguide/Rguide.xml>)
+
+\btwocol
++ employer des espaces autour des opérateurs
+
+```{r, eval=FALSE}
+# bien
+x <- 5 * 3 / 8
+# pas bien
+x<-5*3/8
+```
+
++ ajouter un espace après la virgule dans les fonctions
+
+```{r, eval=FALSE}
+# bien
+data.frame(x = 1:10, y = 2:11)
+# pas bien
+data.frame(x = 1:10,y = 2:11)
+```
+\etwocol
+
+### Propreté du code : indentation
+
+Indentez les arguments dans une fonction lorsque la ligne est trop longue.
+
+```{r, eval=FALSE}
+# bien
+x <- data.frame(x = c(45, 56, 45, 65, 45),
+                y = c(75, 69, 41, 32, 47))
+# pas bien
+x <- data.frame(x = c(45, 56, 45, 65, 45), y = c(75, 69, 41, 32, 47))
+```
+
+### Propreté du code : commentaires
+
+Utiliser les commentaires pour faire des sections, pour expliquer des passages, expliquer des bouts de fonction.
+
+```{r eval=FALSE}
+##### import des données #####
+x <- read.csv(...)
+## Recoder les données
+x <- data.frame(y = ...,
+                z = ...,
+                w = factor(...), # w doit être factor
+                a = 1:10)
+```
+
+## Aide et ressources
+
+### Inspecter les messages d'erreur
+
+La principale difficulté de la programmation est la tendance à abandonner face aux erreurs ; la seule qualité dont vous avez besoin, c'est la persévérance et la patience. Lorsque vous tombez sur un message d'erreur:
+
++ Repérez quelle est la partie du code qui le produit
++ Vérifiez si vous n'avez pas oublié une étape.
++ Lisez le message attentivement : ressemble-t-il à un message connu? Dans ce cas, la solution est connue également.
++ Est-ce que le message suggère une solution? Dans ce cas, essayez-là.
++ Enfin, si rien ne fonctionne, isolez la partie générique du message et cherchez la solution sur Internet/dans un livre
+
+<https://bimestriel.framapad.org/p/Reur>
+
+### Help
+
+L'*aide intégrée* à R inclut, pour chaque fonction, son utilité, ses arguments ainsi que leurs valeurs par défaut, et la nature de l'objet produit.
+
+```{r }
+help("str")
+?str
+```
+
+### Ressources internet
+
+Sinon, en général, tout problème trouve sa solution en demandant à **Google** ou à **Stack OverFlow**. Notez que le premier renvoie le plus souvent vers le second. 
+
+[stackoverflow.com/questions/tagged/r](http://stackoverflow.com/questions/tagged/r)
+
+StackOverflow est une bonne ressource pour apprendre : allez lire des questions et essayer de repérer vous-mêmes les problèmes, puis allez lire les réponses proposée. Rapidement, vous pourrez proposer vous-mêmes des réponses/poser des questions.
+
+### Ressources écrites
+
+Cornillon P.A., Guyader A., Husson F., Jégou N., Josse J., Kloareg M., Matzner-Løber E., Rouvière L., *Statistique avec R*, Presses universitaires de Rennes, 2013
+
+Wickham, H., *Advanced R*, Chapman & Hall, 2014
+
+### Récapitulatif
+
+R fonctionne avec des *objets*. On en manipule principalement deux : les *vecteurs* et les *fonctions*. Les vecteurs contiennent les données. Les fonctions prennent des *arguments*, modifient un vecteur et *retournent* un résultat.
+
+Les résultats sont affichés (*print()*) dans la console. Pour qu'ils soient stockés en mémoire, il faut les *assigner* dans un objet.
+
+### Récapitulatif : types de vecteurs
+
++ *vecteurs unidimensionnels*:
+	- numeric
+	- integer
+	- character
+	- factor
+	- logical
+  
++ *vecteurs pluridimensionnels*:
+	- list
+	- matrix
+	- data.frame
+
+### Récapitulatif : principales fonctions abordées
+
++ c() crée un vecteur
++ data.frame() crée un data.frame
++ matrix() crée une matrice
++ names() retourne le nom des colonnes
++ length() retourne la taille (nombre d'éléments) de l'objet
++ dim() retourne les dimensions de l'objet
++ help() : votre meilleuR ami
+
+### Exercice
+
+On a demandé à 4 ménages le *revenu du chef de ménage*, celui de son *conjoint*, et le *nombre de personnes* du ménage :
+
++ Ménage 1 : Chef = NA ; Conjoint = 1450 ; Nb pers = 4 ; Statut = marié
++ Ménage 2 : Chef = 1180 ; Conjoint = NA ; Nb pers = 2 ; Statut = célibataire
++ Ménage 3 : Chef = 1750 ; Conjoint = 1690 ; Nb pers = 3 ; Statut = pacs
++ Ménage 4 : Chef = 2100 ; Conjoint = NA ; Nb pers = 1 ; Statut = célibataire
+
+
+<!-- ### Indexation -->
+<!-- Sélectionner des éléments dans un vecteur. -->
+
+<!-- ```{r } -->
+<!-- # Une seule dimension -->
+<!-- tailles -->
+<!-- tailles[1] -->
+<!-- tailles[c(1,3,10)] -->
+
+<!-- ``` -->
+
+<!-- ### Indexation -->
+
+<!-- ```{r} -->
+<!-- # Deux dimensions -->
+<!-- d1 -->
+<!-- d1[1,] -->
+<!-- d1[1, 1] -->
+<!-- d1[1, 2] -->
+<!-- d1[, 2] -->
+<!-- d1[, 3] -->
+<!-- ``` -->
+
+
+<!-- ### Vecteurs numériques - opérations -->
+
+<!-- La plupart des fonctions de base de R sont **vectorisées** : une opération arithmétique appliquée à un vecteur sera appliquée à l'ensemble des valeurs du vecteur. -->
+
+<!-- ```{r } -->
+<!-- tailles+10 -->
+<!-- tailles*2 -->
+
+<!-- ``` -->
+
+<!-- ### Vecteurs numériques - opérations (2) -->
+
+<!-- ```{r} -->
+<!-- tailles/10 -->
+<!-- tailles^2 -->
+
+
+<!-- ``` -->
+
+<!-- ### Opérations sur plusieurs vecteurs -->
+
+<!-- Si deux vecteurs ont la même **longueur**, une fonction mobilisant ces deux vecteurs emploiera les valeurs une par une. -->
+
+<!-- ```{r } -->
+<!-- poids <- c(86, 74, 83, 50, 78, 66, 66, 51, 50, 55) -->
+
+<!-- tailles.m <- tailles/100 -->
+
+<!-- imc <- poids/(tailles.m^2) -->
+<!-- imc -->
+
+<!-- imc>25 -->
+
+<!-- ``` -->
+
+<!-- ### Créer une suite de nombre -- `seq()` -->
+<!-- ```{r } -->
+<!-- suite <- seq(1,10) # équivalent à c(1:10) -->
+<!-- suite -->
+<!-- suite2 <- seq(0,30,3) -->
+<!-- suite2 -->
+
+<!-- ``` -->
+
+<!-- ### Créer une suite de nombre -- `rep()` -->
+
+<!-- ```{r } -->
+<!-- toto <- c(7,9,13) -->
+<!-- # on répète toto 3 fois -->
+<!-- rep(toto, 3) -->
+<!-- # on répète le premier terme une fois, -->
+<!-- # et le second deux fois... -->
+<!-- rep(toto, 1:3) -->
+
+<!-- ``` -->
+
+<!-- ### Vecteur alphanumérique (character) -->
+
+<!-- ```{r } -->
+<!-- dipl <- c("BEP", "CAP", "Bac", "Licence", "CAP", -->
+<!--           "Bac", "Master") -->
+<!-- dipl -->
+
+<!-- ``` -->
+
+<!-- ### Opération sur plusieurs vecteurs alphanumériques -->
+
+<!-- ```{r } -->
+<!-- sexe <- rep(c("H","F"), c(4,3)) -->
+
+<!-- table(dipl, sexe) -->
+<!-- ``` -->
+
+<!-- ### Afficher un texte -->
+<!-- ```{r } -->
+<!-- cat("C'est quoi R ?") -->
+<!-- cat("C'est quoi \"R\" ?") -->
+<!-- cat("C'est quoi \"R\" ? Un truc de geek !") -->
+<!-- cat("C'est quoi \"R\" ? \n Un truc de geek !") -->
+
+<!-- ``` -->
+
+<!-- ### Vecteurs logiques -->
+
+<!-- ```{r } -->
+<!-- # Vecteurs logiques : T=TRUE et F=FALSE -->
+<!-- logic <- c(T,T,F,T) -->
+<!-- logic -->
+
+<!-- ``` -->
+
+<!-- Préférer **`TRUE`** ou **`FALSE`** en toutes lettres, qui sont plus explicites. -->
