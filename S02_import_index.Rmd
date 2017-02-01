@@ -1,0 +1,199 @@
+---
+title: 'S02: Import de données et indexation'
+subtitle: "Analyse de données quantitatives avec R"
+author: Samuel Coavoux
+output:
+  beamer_presentation:
+    toc: true
+    colortheme: beaver
+    highlight: tango
+    theme: Copenhagen
+    includes:
+      in_header: header.tex
+---
+
+```{r echo=FALSE,warning=FALSE}
+library(knitr)
+#opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE,fig.path='./Plot/plot-', comment="",fig.width=9,fig.height=7,fig.lp="",results="asis")
+options(width=50)
+```
+
+# Importer des données
+
+## Localiser ses données
+
+### Notion de working directory
+
+Le working directory est le répertoire de l'ordinateur considéré par la session courante de R comme sa "base". C'est là qu'il va aller chercher les fichiers lorsqu'on lui demande d'importer des données. C'est par rapport à ce répertoire qu'il définit les chemins relatifs.
+
+`getwd()` renvoie le working directory actuel. `setwd("PATH")` permet de fixer le working directory. 
+
+ATTENTION: `setwd()` ne doit pas être utilisé avec Rstudio. En effet, le working directory est fixé, avec Rstudio, à la racine du **projet**.
+
+```{r}
+getwd()
+```
+
+### Chemins relatifs et absolus
+
+En informatique, on appelle:
+
++ **absolu** le chemin vers un fichier qui part de la racine de l'ordinateur. Par exemple:
+    - unix (linux ou mac): /home/user/Documents/R/data.csv
+    - windows: c:\\\\Users\\user\\documents\\R\\data.csv
++ **relatif** un chemin vers un fichier qui part du **répertoire actuel** (en l'occurence du working directory):
+    - ./data/data.csv (ici, `.` signifie répertoire actuel)
+
+Les chemins relatifs sont **toujours préférables** parce qu'ils sont plus pérennes: si vous copiez le dossier sur un autre ordinateur ou à un autre endroit, ils fonctionneront tant que la structure interne du répertoire ne change pas.
+
+### Chemins: bonnes pratiques
+
+Nous allons faire en sorte de:
+
++ toujours travailler dans un projet Rstudio (de sorte que le working directory est fixe)
++ toujours localiser nos fichier par rapport à ce working directory
+
+Personnellement, je crée toujours un repertoire `data` dans le répertoire du projet Rstudio, où j'enregistre tous les sets de données que je vais employer dans l'analyse.
+
+### Repérer le format de données
+
+En gros, il y a deux grandes familles de format de données, que l'on repère principalement à leur extension:
+
++ les données en texte brut (généralement .txt, .csv, .dlm)
++ les données dans un format binaire, généralement propres à un logiciel: 
+    - R : .RData
+    - SAS : .sasb7dat
+    - STATA : .dta
+    - SPSS : .sav, .por
+
+### Que faut-il utiliser
+
+.RData => fonction `load()`
+
+Texte brut => famille de fonctions `read.*()`
+
+Autre format => regarder dans les packages `foreign()` (R-base) et `haven()` (hadleyverse)
+
+## La famille read
+
+### Import de données en R-base
+
+La famille `read.*()` est un ensemble de fonctions pour lire les données au format texte. La fonction de base est `read.table()`. Toutes les autres fonctions sont simplement des variations, avec des arguments par défauts qui diffèrent quelque peu.
+
+```{r, eval=FALSE}
+read.table(file, header=FALSE, sep = "", quote = "\"'", 
+           dec = ".")
+```
+
+----------------------------------
+fonction      header   sep    dec
+-----------  -------- ------ -----
+read.csv      TRUE     ,      .
+read.csv2     TRUE     ;      ,
+read.delim    TRUE     `\t`   .
+----------------------------------
+
+### Repérer le format précis des données
+
+Si les données sont au format texte, il faut commencer par repérer à quoi elles ressemblent. On peut les ouvrir dans un éditeur de texte ; ou, si elles sont trop grandes, ne lire que le début du fichier.
+
+Par exemple, sous unix (Mac/Linux):
+
+~~~bash
+head my_data.csv
+~~~
+
+### Ce qu'il faut repérer
+
++ est-ce que la première ligne contient le nom des variables ? Le plus souvent, oui. => argument `header`
++ quel est le séparateur (le caractère qui sépare deux variables) ? Le plus souvent l'un de: `, ; \t (tabulation)` => adapter argument `sep` de `read.table()` ou utiliser `read.csv()`, `read.csv2()` ou `read.delim()`
++ s'il n'y a pas de séparateur visible, les données peuvent être au fixed width format => cf. `read.fwf()`
++ quel est le signe de citation? Le plus souvent `"` => argument `quote`
++ quel est le signe des décimales? Le plus souvent `.` => argument `dec`
+
+### Cas le plus fréquent: `read.csv()`
+
+```{r, eval=FALSE}
+d <- read.csv("./data/data.csv",
+              stringsAsFactors=FALSE)
+```
+
+Il vaut mieux toujours ajouter `stringsAsFactors=FALSE` et retransformer par la suite en factor les variables catégorielles.
+
+### Cas de fixed-width
+
+Le format à largeur fixe est un format de donnée dans lesquelles chaque variable occupe un nombre de colonnes définie par avance.
+
+~~~fwf
+V1V2 V3
+01452478
+01123236
+02457124
+~~~
+
+Dans ce cas, on a besoin d'un vecteur indiquant la taille de chacune des colonnes. Ici:
+
+```{r, eval=FALSE}
+d <- read.fwf("./data/data.fwf", widths = c(2, 3, 3))
+```
+
+## Autres formats
+
+### Foreign
+
+```{r, eval=FALSE}
+library(foreign)
+```
+
++ `read.dta()` stata
++ `read.spss()` SPSS
++ `read.xport()` SAS
+
+### Haven
+
+Haven est habituellement plus performant que foreign, en particulier avec SAS.
+
+```{r, eval=FALSE}
+library(haven)
+```
+
++ `read_stata()` STATA
++ `read_spss()` SPSS 
++ `read_sas()` SAS
+
+### Exercices
+
+Importer les sets de données de la série import présent dans le dossier data du répertoire github.
+
+```{r, echo=FALSE, eval=FALSE}
+d <- data.frame(id = sample(apply(expand.grid(letters, letters), 1, paste0, collapse=""), 50),
+                age = round(runif(50, 18, 65)),
+                dipl = sample(c("CEP", "CAP-BEP", "BAC", "Bac+2, Bac+5"), 50, replace=TRUE), 
+                var1 = sub("\\.", ",", round(rnorm(50), 3)))
+write.csv(d, file="./data/import2.txt")
+write.csv2(d, file="./data/import3.txt")
+```
+
+# Avec des données... 
+
+### Regarder les données
+
+```{r}
+# nrow(d)
+# ncol(d)
+# dim(d)
+# 
+# head(d, 2)
+# names(d)  
+# str(d)    
+
+```
+
+### Inspecter les données visuellement
+
+Pour obtenir les données sous forme de tableur.
+
+```{r eval=FALSE}
+#View(data)
+```
+

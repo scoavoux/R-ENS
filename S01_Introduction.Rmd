@@ -8,6 +8,8 @@ output:
     colortheme: beaver
     highlight: tango
     theme: Copenhagen
+    includes:
+      in_header: header.tex
 ---
 
 ```{r echo=FALSE,warning=FALSE}
@@ -39,22 +41,20 @@ Il est cependant spécifiquement orienté vers l'**analyse statistique**. Il est
 ### Spécificités de R
 
 + Un langage **évolutif**. Il y a:
-  - un **cœur**, les fonctions de base du langage (parfois appelé "R-base", développé par la "R core team") ; 
-  - des **packages**, qui sont des ensembles de fonctions écrits par des programmeurs le plus souvent indépendants (de la R core team).R est apprécié des statisticiens parce qu'il permet d'implémenter facilement de nouvelles méthodes dans de tels packages, et de les diffuser.
-+ Un langage **interprété** adapté à l'usage **interactif**. Interprété signifie que le code n'a pas besoin d'être compilé pour être lancé ; l'usage interactif signifie que vous n'avez pas besoin d'écrire l'intégralité d'un programme avant de le lancer : la compilation peut se faire ligne à ligne. Cette particularité fait de R un langage très **rapide** à prendre en main et à utiliser au quotidien, mais aussi **lent** dans ses calculs et parfois **instable**. R demande donc une certaine **discipline** de la part de l'usager.
+    - un **cœur**, les fonctions de base du langage ("R-base", développé par la "R core team") ;
+    - des **packages**, qui sont des ensembles de fonctions écrits par des programmeurs indépendants (de la R core team).
++ Un langage **interprété** adapté à l'usage **interactif**.
 + Un langage de programmation **orienté objet**.
 + Des **fonctionnalités graphiques** avancées.
 
 ### Rstudio
 
-Rstudio est un **Integrated Development Environment** (IDE) dédié à R, **open-source** et **gratuit** (dans sa version individuelle) développé par la société Rstudio. Il s'agit d'une interface qui facilite la programmation, interactive ou non, avec R. Rstudio offre notamment:
+Rstudio est un **Integrated Development Environment** (IDE) dédié à R, **open-source** et **gratuit** (dans sa version individuelle) développé par la société Rstudio. Il s'agit d'une interface qui facilite la programmation, interactive ou non:
 
-+ une vue d'ensemble de l'environnement
-+ une aide intégrée
-+ l'autocomplétion des fonctions
-+ une aide à la mise en forme
-
-Rstudio est désormais l'IDE dominant pour R. La société finance également le travail de développeurs R.
++ vue d'ensemble de l'environnement
++ aide intégrée
++ autocomplétion des fonctions
++ aide à la mise en forme
 
 Il existe d'autres moyens d'utiliser R: *Rgui* (environnement graphique diffusé avec R), *Rcmdr* (environnement graphique avec un menu type SPSS), *R* dans un terminal.
 
