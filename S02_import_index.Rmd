@@ -85,13 +85,12 @@ read.table(file, header=FALSE, sep = "", quote = "\"'",
            dec = ".")
 ```
 
-----------------------------------
 fonction      header   sep    dec
 -----------  -------- ------ -----
-read.csv      TRUE     ,      .
-read.csv2     TRUE     ;      ,
-read.delim    TRUE     `\t`   .
-----------------------------------
+read.csv      TRUE     ,      .  
+read.csv2     TRUE     ;      ,  
+read.delim    TRUE     `\t`   .  
+
 
 ### Repérer le format précis des données
 
@@ -161,9 +160,17 @@ library(haven)
 + `read_spss()` SPSS 
 + `read_sas()` SAS
 
+
+### Exploration d'une base de données
+
++ `str()`, `summary()`
++ `dim()`, `length()`, `nrow()`, `ncol()`
++ `head()`, `tail()`: afficher les cinq premières/cinq dernières lignes
+
 ### Exercices
 
-Importer les sets de données de la série import présent dans le dossier data du répertoire github.
++ Importer les bases de données de la série import présent dans le dossier data du répertoire github ;
++ explorer les données: classes, structure, nombre de ligne, nombre de colonnes.
 
 ```{r, echo=FALSE, eval=FALSE}
 d <- data.frame(id = sample(apply(expand.grid(letters, letters), 1, paste0, collapse=""), 50),
@@ -174,26 +181,170 @@ write.csv(d, file="./data/import2.txt")
 write.csv2(d, file="./data/import3.txt")
 ```
 
-# Avec des données... 
+# Indexation
 
-### Regarder les données
+### Indexation
+
+On appelle indexation l'opération qui consiste à sélectionner un sous-ensemble restreint des valeurs d'un vecteurs: 
+
++ seulement certaines valeurs d'un vecteur unidimensionnel ;
++ seulement certains lignes ou certaines colonnes d'un vecteur à deux dimensions.
+
+Il y a trois opérateurs d'indexation, dont deux que nous connaissons:
+
++ `$`
++ `[[`
++ `[`
+
+### Charger les données
 
 ```{r}
-# nrow(d)
-# ncol(d)
-# dim(d)
-# 
-# head(d, 2)
-# names(d)  
-# str(d)    
+library(questionr)
+data("hdv2003")
+```
+
+
+### `$` et `[[`
+
+Dollar et crochet double permettent d'accéder aux objets stockés dans une liste (et par conséquent aux variables d'un data.frame). Fonctionne avec le **nom** de l'objet ou avec son index (uniquement pour `[[`).
+
+`$` et `[[` ne peuvent sélectionner qu'**un seul** objet stocké dans une liste. Ils renvoient un objet de la classe correspondant à l'objet sélectionné, et non une liste.
+
+```{r}
+# hdv2003$age
+head(hdv2003$age)
+```
+
+### `$` et `[[`
+
+```{r}
+# hdv2003[["age"]]
+head(hdv2003[["age"]])
 
 ```
 
-### Inspecter les données visuellement
+### `$`
 
-Pour obtenir les données sous forme de tableur.
+```{r}
+names(hdv2003) # age est la variable n°2
+# hdv2003[[2]]
+head(hdv2003[[2]])
 
-```{r eval=FALSE}
-#View(data)
 ```
+
+
+### `[`
+
+Le crochet simple est un opérateur d'indexation qui permet de sélectionner deux ou plusieurs valeurs. Il fonctionne avec les **vecteurs unidimensionnels**, les **matrices** et les **data.frames**, mais **pas avec les listes**.
+
+Il y a trois manières de sélectionner des valeurs avec `[` ; pour le moment, on se contente de l'index, c'est-à-dire la position dans le vecteur.
+
+### `[` avec un vecteur unidimensionnel
+
+```{r}
+class(hdv2003$age)
+hdv2003$age[1] # age du premier individu
+hdv2003$age[c(1, 5, 7)] # age des individus 1, 5, 7
+hdv2003$age[1:10] # age des individus 1 à 10
+```
+
+### `[` avec un vecteur pluridimensionnel
+
+Si le vecteur a deux dimensions, `[` doit avoir deux arguments, séparés par une virgule.
+
+```{r}
+class(hdv2003)
+# sélectionner les individus 1 à 10 (premier argument)
+# sélectionner la variable n° 2 (deuxième argument)
+hdv2003[1:10, 2]
+
+```
+
+### `[` avec un vecteur pluridimensionnel
+
+```{r}
+# Sélectionner les individus 1 à 5, les colonnes 1 à 3
+hdv2003[1:5, 1:3]
+```
+
+
+### Sélection par le nom
+
+Il est également possible de sélectionner des éléments par leur nom, en particulier pour les vecteurs d'un data.frame. Le vecteur nom peut avoir une taille supérieure à 1.
+
+```{r}
+hdv2003[1:5, "age"]
+hdv2003[1:5, c("age", "sexe")]
+```
+
+### Sélection vide
+
+Si on laisse l'un des deux arguments vide, `[` sélectionne l'ensemble des lignes/colonnes.
+
+```{r}
+# Toutes les lignes, seulement deux colonnes
+# hdv2003[, c("age", "sexe")]
+# Toutes les colonnes, seulement 5 lignes
+# hdv2003[1:5, ]
+```
+
+### Sélection logique
+
+Le vecteur logique doit faire la même taille que la dimension à indexer.
+
+```{r}
+# On réduit hdv à ses 5 premières colonnes
+d <- hdv2003[1:5, c("age", "occup")]
+d
+```
+
+### Sélection logique
+
+```{r}
+d[c(TRUE, FALSE, FALSE, TRUE, FALSE), ]
+```
+
+
+### Calculer une condition logique
+
+Le plus souvent, cependant, le vecteur logique d'indexation est produit de façon programmatique: on n'écrit pas les TRUE et FALSE, mais on les calcule. Pour tester une condition, on dispose des opérateurs suivants:
+
++ Vecteurs numériques ou integer: `<`, `>`, `<=`, `>=`, `==` (égal), `!=` (différent de)
++ Vecteurs character ou factor `==` (égal), `!=` (différent), `%in%` (appartenant à un ensemble)
++ Combinaison de vecteurs logiques: `&` (et), `|` (ou)
+
+### Condition logique: numérique
+```{r}
+d$age > 30
+d[d$age > 30, ]
+```
+
+### Condition logique: numérique, deux conditions
+```{r}
+d$age > 30 & d$age < 70
+d[d$age > 30 & d$age < 70, ]
+```
+
+### Condition logique: character
+```{r}
+d$occup == "Exerce une profession"
+d[d$occup == "Exerce une profession", ]
+```
+
+### Condition logique: character
+```{r}
+d$occup %in% c("Etudiant, eleve", "Retraite")
+d[d$occup %in% c("Etudiant, eleve", "Retraite"), ]
+```
+
+### Exercices
+
+On revient à la base de données `hdv2003` dans son intégralité.
+
++ extraire les variables de pratique (celles auxquelles les enquêtés ont répondu par oui ou non) des enquêtés qui sont cadres.
++ extraire toutes les variables des 15 derniers enquêtés
++ extraire l'âge des personnes qui ne sont pas retraitées.
+
+# Recodage
+
 
