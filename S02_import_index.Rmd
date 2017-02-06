@@ -1,5 +1,5 @@
 ---
-title: 'S02: Import de données et indexation'
+title: 'S02: Import de données, indexation et recodage'
 subtitle: "Analyse de données quantitatives avec R"
 author: Samuel Coavoux
 output:
@@ -15,6 +15,7 @@ output:
 ```{r echo=FALSE,warning=FALSE}
 library(knitr)
 #opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE,fig.path='./Plot/plot-', comment="",fig.width=9,fig.height=7,fig.lp="",results="asis")
+
 options(width=50)
 ```
 
@@ -347,4 +348,169 @@ On revient à la base de données `hdv2003` dans son intégralité.
 
 # Recodage
 
+### Enquête emploi en continu
+
+```{r, eval=FALSE, echo=FALSE}
+# Récupérer les données:
+# https://www.insee.fr/fr/statistiques/2388681
+eec <- read.dbf(file = "./data/eec15_eec15_dbase/eec15.dbf", as.is = TRUE)
+set.seed(1789)
+eec <- eec[sample(1:431678, 10000), ]
+save(eec, file = "./data/eec2015.RData")
+```
+
+```{r}
+load("./data/eec2015.RData")
+```
+
+### Transformer une classe de variable
+
+La famille de fonction `as.*()` permet de transformer un objet d'une classe à l'autre. On utilisera principalement `as.numeric()`, `as.character()`, et `as.data.frame`.
+
+### `as.character()` 
+
+Fonctionne avec tous les types de vecteurs unidimensionnels.
+
++ factor -> character : chaque valeur prend le level correspondant
++ numeric/integer -> character : valeur numérique devient une chaîne de caractères (`1` devient `"1"`)
++ logical -> character : `TRUE` devient `"TRUE"`
+
+### `as.numeric`
+
++ character -> numeric : les valeurs qui sont composées uniquement de chiffres et de séparateur de décimale sont converties en numérique ; toutes les autres valeurs deviennent NA.
+
+```{r}
+x <- c("12", "14", "50ml")
+as.numeric(x)
+```
+
++ logical -> numeric: `TRUE` devient `1`, `FALSE` devient `0`
+
+### `as.numeric` appliqué aux factor
+
+factor -> numeric : le vecteur est converti, chaque valeur est l'index du level correspondant
+
+```{r}
+x <- factor(c("CAP", "BEP", "BAC", "BEP"))
+levels(x)
+as.numeric(x)
+```
+
+### `as.numeric` appliqué aux factor (2)
+Par conséquent, si un vecteur numérique est encodé par erreur sous la forme d'un factor, il faut faire attention à transformer le factor en character avant 
+
+```{r}
+x <- factor(c(12,17,20))
+as.numeric(x)
+as.numeric(as.character(x))
+# Solution plus efficace
+as.numeric(levels(x))[x]
+```
+
+### Découper une variable numérique en classes
+
+On utilise `cut()` avec comme argument `x` (le vecteur à découper) et `breaks` (soit un nombre de classes d'amplitude égales, soit les limites elles-mêmes).
+```{r}
+head(cut(eec$HHCE, breaks = 6))
+head(cut(eec$HHCE, breaks = c(0, 20, 35, 42, 70)))
+```
+
+### `cut()`
+
+Par défaut, l'intervalle est fermé à droite (changer avec `right = FALSE`) et exclut la valeur minimale (changer avec `include.lowest=TRUE`)
+
+```{r}
+cut(c(0, 10, 20, 12), breaks=c(0, 10, 20))
+cut(c(0, 10, 20, 12), 
+    breaks=c(0, 10, 20), 
+    include.lowest = TRUE,
+    right = FALSE)
+```
+
+### `cut()`
+
+```{r}
+eec$HHCE <- cut(eec$HHCE, 
+                breaks = c(0, 20, 35, 42, 70),
+                labels = c("0-19", "20-34", 
+                           "35-41", "42-70"))
+
+```
+
+### Recoder des valeurs
+
+```{r}
+eec$HORAIC[eec$HORAIC == "4"] <- NA
+```
+
+### Renommer des modalités
+
+```{r}
+eec$SEXE <- factor(eec$SEXE, 
+                   levels = c("1", "2"),
+                   labels = c("Hommes", "Femmes"))
+```
+
+### Réordonner des modalités
+
+L'ordre dans lequel on déclare les levels et labels est l'ordre dans lequel les levels seront stockés. Pour le modifier, on peut employer à nouveau `factor()`
+
+```{r}
+eec$SEXE <- factor(eec$SEXE, 
+                   # changer l'ordre
+                   levels = c("Femmes", "Hommes"))
+
+```
+
+### Regrouper des modalités
+
+```{r}
+eec$diplome[eec$DIP11 %in% c("10", "11")] <- "Bac+3 et plus"
+eec$diplome[eec$DIP11 %in% c("30", "31", "33")] <- "Bac à bac+2"
+eec$diplome[eec$DIP11 %in% c("41", "42")] <- "Bac"
+eec$diplome[eec$DIP11 == "50"] <- "CAP, BEP"
+eec$diplome[eec$DIP11 %in% c("60", "70")] <- "BEPC, CEP"
+eec$diplome[eec$DIP11 == "71"] <- "Sans diplôme"
+```
+
+### Regrouper des modalités
+
+```{r}
+eec$diplome <- factor(eec$diplome, 
+                      labels = c("Sans diplôme", 
+                                 "BEPC, CEP", 
+                                 "CAP, BEP", 
+                                 "Bac", 
+                                 "Bac à bac+2", 
+                                 "Bac+3 et plus"))
+```
+
+### Regrouper des modalités: avec un dictionnaire
+
+```{r}
+dic <- c(`71` = "Sans diplôme",
+         `70` = "BEPC, CEP",
+         `60` = "BEPC, CEP",
+         `50` = "CAP, BEP",
+         `41` = "Bac",
+         `42` = "Bac",
+         `33` = "Bac à bac+2",
+         `31` = "Bac à bac+2",
+         `30` = "Bac à bac+2",
+         `11` = "Bac+3 et plus",
+         `10` = "Bac+3 et plus")
+```
+
+### Regrouper des modalités: avec un dictionnaire
+
+```{r}
+eec$diplome_d <- dic[eec$DIP11]
+eec$diplome_d <- factor(eec$diplome_d, 
+                        levels = unique(dic))
+```
+
+### Exercices
+
+1. Renommer les modalités de la variable catégorie socioprofessionnelle (1 chiffre).
+2. **À partir de la variable `NAFG088UN`**, créez une variable de secteur économique prenant pour modalités "primaire", "secondaire" et "tertiaire".
 
