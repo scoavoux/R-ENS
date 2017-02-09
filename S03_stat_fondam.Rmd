@@ -1,0 +1,506 @@
+---
+title: 'S03: Statistiques fondamentales'
+subtitle: "Analyse de données quantitatives avec R"
+author: Samuel Coavoux
+output:
+  beamer_presentation:
+    toc: true
+    colortheme: beaver
+    highlight: tango
+    theme: Copenhagen
+    includes:
+      in_header: header.tex
+---
+
+```{r echo=FALSE,warning=FALSE}
+library(knitr)
+#opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE,fig.path='./Plot/plot-', comment="",fig.width=9,fig.height=7,fig.lp="",results="asis")
+opts_chunk$set(dev = 'pdf')
+options(width=50)
+```
+
+
+```{r donnees, eval=FALSE, echo=FALSE, warning=FALSE, message=FALSE}
+## Données
+### American Community Survey : artists -- à télécharger sur ICPSR :
+### http://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/35529?classification=ICPSR.XVII.F.
+load("./data/ICPSR_35529/DS0001/35529-0001-Data.rda")
+d <- da35529.0001
+rm(da35529.0001)
+library(dplyr)
+## Netoyage
+dt <- select(d,sexe  = SEX,
+               age   = AGEP,
+               state = ST,
+               income= PINCP,
+               dipl  = SCHL,
+               cit   = CIT,
+               eng   = ENG) %>% 
+  mutate(sexe = sub("\\([12]\\) (.*)","\\1",as.character(sexe))) %>% 
+  mutate(dipl_c = cut(as.numeric(dipl), breaks = c(0, 15.5, 19.5, 21.5, 25), 
+                      labels = c("Aucun", "HS degree", "College", "Graduate ed.")))
+save(dt, file="./data/ACS_artists.Rdata")
+
+```
+
+# Calcul vectorisé
+
+### Principe de la vectorisation
+
+Une opération **vectorisée** est une opération qui est répétée sur chacun des éléments d'un vecteurs sans qu'il y a besoin d'appeler explicitement une **boucle** (de type `for` ou `apply` -- que nous verrons plus tard).
+
+Dans R, la plupart des fonctions de base sont vectorisées.
+
+Cela vaut pour quasiment toutes les fonctions **qui renvoient un vecteur de même taille que l'input**.
+
+### Exemple: `+` vectorisée
+
+Si l'on ajoute deux objets de même taille, les éléments sont ajoutés un à un ; si l'on ajoute à un objet un autre objet de taille 1 ou de taille diviseur de celle du premier, le second est recyclé (`rep()`), puis les éléments sont ajoutés un à un.
+
+```{r}
+x <- c(1, 2, 3)
+y <- c(6, 5, 4)
+z <- 1
+x + y
+x + z
+```
+
+### Comparer à `+` non vectorisé
+
+Dans d'autres langages, on écrirait cela (qui fonctionne en R, mais qui ne doit **surtout pas** être utilisé)
+
+~~~r
+x <- c(1, 2, 3)
+y <- c(6, 5, 4)
+
+for(i in 1:3)
+  x[i] + y[i]
+
+for(i in 1:3)
+  x[i] + z
+~~~
+
+### Calculs
+
+Pour calculer des scores, des moyennes, des pondérations, etc.
+
+```{r}
+# Calcul de l'écart-type
+x <- 1:10
+# Carré des écarts à la moyenne
+y <- (x - mean(x))^2
+# Racine de la moyenne des carrés
+sqrt(sum(y)/length(x))
+```
+
+### Simuler des données
+
+R dispose d'un ensemble de fonctions qui génèrent la densité (`d`), la distribution cumulée (`p`), les quantiles (`q`), et des valeurs aléatoires (`r`) pour les principales distributions statistiques. Elles suivent toutes les mêmes conventions de nommage: la lettre de la fonction recherchée (`d`, `p`, `q` ou `r`) suivie du nom abrégé de la distribution. Par exemple pour la distribution normale: `dnorm()`, `pnorm()`, `qnorm()`, `rnorm()`.
+
+Cf. `help("Distributions")` pour la liste de ces fonctions. On utilisera souvent `rnorm(x)` pour générer rapidement une variable aléatoire de taille x, de moyenne 0 et d'écart-type 1. Cf. également `runif()` (distribution uniforme), `rt()` (t de Student), `rchisq()` (loi du $\chi^2$).
+
+# Statistique univariée
+
+## Décrire une variable quantitative
+
+### Somme
+
+```{r}
+x <- runif(50, min = 0, max = 10)
+x
+sum(x)
+```
+
+### Tendance centrale
+
+```{r}
+# Moyenne
+mean(x)
+# enlever les 5% de valeurs les plus hautes
+# et les 5% de valeurs les plus basses
+mean(x, trim=.05)
+# Médiane
+median(x)
+```
+
+### Extrêmes
+
+```{r}
+min(x)
+max(x)
+# Nombre de valeurs supérieures à
+# une valeur fixée
+sum(x > max(x)/2)
+```
+
+### Dispersion
+
+```{r}
+var(x)
+sd(x)
+```
+
+### Dispersion: quantiles
+
+```{r}
+# Quartiles, min et max
+quantile(x)
+# 1er et 9e déciles
+quantile(x, c(.1, .9))
+```
+
+### Résumé
+
+```{r}
+summary(x)
+```
+
+### Arrondis
+
+```{r}
+round(x, 2)
+round(mean(x), 2)
+```
+
+### Intervalle de confiance autour d'une moyenne
+
+```{r}
+tt <- t.test(x)
+print(tt)
+```
+
+### Intervalle de confiance autour d'une moyenne
+
+```{r}
+str(tt)
+```
+
+### Intervalle de confiance autour d'une moyenne
+
+```{r}
+## Pour accéder au seul intervalle de confiance
+tt$conf.int
+
+## Ou directement
+t.test(x)$conf.int
+```
+
+### Intervalle de confiance autour d'une moyenne
+
+Il est possible d'ajuster le niveau de confiance souhaité. Par défaut, on fixe $\alpha$ à 0.05 avec l'argument `conf.level = 0.95` ; il est possible de réduire $\alpha$ en augmentant `conf.level`.
+
+```{r}
+t.test(x, conf.level = .99)$conf.int
+```
+
+
+### Représentation graphique
+
+Il existe plusieurs systèmes de représentations graphiques dans R. 
+
++ R-base : package `graphics`, chargé dans toute nouvelle session; 
++ R-base : package `lattice`, qui n'est pas chargé par défaut, plus complexe et plus puissant;
++ À installer: package `ggplot2` (Grammar of graphics).
+
+Pour le moment, nous faisons des graphiques **exploratoires**: avec `graphics` (plus simple), sans ajouter de titres, labels, couleurs, etc. Nous verrons plus tard comment faire des graphiques pour la publication.
+
+### Une fonction générique, `plot()`
+
+`plot()` est une fonction générique, un "wrapper": elle évalue les arguments qui lui sont donnés, et appelle d'autres fonctions, selon la valeur de ces arguments. Elle permet d'aller vite, sans avoir besoin de connaître toutes les fonctions graphiques, pour faire de l'exploration de données.
+
+```{r}
+plot
+```
+
+### Plot
+
+\btwocol
+```{r}
+plot(x)
+```
+\etwocol
+
+### Densité
+
+\btwocol
+```{r}
+plot(density(x))
+```
+\etwocol
+
+### Histogramme
+
+\btwocol
+```{r}
+hist(x, freq = FALSE)
+```
+\etwocol
+
+### Histogramme + densité
+
+\btwocol
+```{r}
+hist(x, freq = FALSE)
+lines(density(x))
+```
+\etwocol
+
+### Boxplot
+
+\btwocol
+```{r}
+boxplot(x)
+```
+\etwocol
+
+
+### Gestion des valeurs manquantes
+
+La grande majorité de ces fonctions renvoient `NA` s'il y a une valeur manquante dans le vecteur. On peut alors préciser `na.rm = TRUE` pour que les valeurs manquantes soient supprimées avant le calcul.
+
+## Décrire une variable catégorielle
+
+### Données: Artist Community Survey
+
+```{r}
+load("./data/ACS_artists.Rdata")
+```
+
+
+### Tri à plat
+
+```{r}
+table(dt$sexe)
+```
+
+### Tri à plat
+
+```{r}
+table(dt$sexe)/nrow(dt)
+prop.table(table(dt$sexe))
+```
+
+### Tri à plat
+
+```{r}
+library(questionr)
+freq(dt$sexe)
+```
+
+### Arguments de `freq()`
+
++ `digits`: nombre de chiffres après la virgule (1 par défaut)
++ `cum`: calculer les pourcentages cumulés (FALSE par défaut)
++ `sort`: trier les modalités ("inc": dans l'ordre croissant, "dec" : dans l'ordre décroissant ; défaut: ordre normal des modalités)
+
+```{r}
+freq(dt$eng, cum = TRUE)
+```
+
+### Test de proportion
+
+```{r}
+pt <- prop.test(x = sum(dt$sexe == "Female"), 
+                n = nrow(dt),
+                conf.level = .99)
+pt$conf.int
+```
+
+### Diagramme en barre -- effectif
+
+\btwocol
+```{r}
+barplot(table(dt$eng))
+```
+\etwocol
+
+### Diagramme en barre -- fréquence
+
+\btwocol
+```{r}
+barplot(prop.table(
+  table(dt$eng)))
+```
+\etwocol
+
+# Statistique bivariée et test d'hypothèse
+
+## Deux variables quantitatives
+
+### Scatterplot
+
+\btwocol
+```{r}
+plot(dt$age, dt$income)
+```
+\etwocol
+
+### Analyse de corrélation
+
+\btwocol
+```{r}
+var(dt$age)
+var(dt$income)
+cov(dt$age, dt$income)
+cor(dt$age, dt$income)
+```
+\etwocol
+
+## Deux variables qualitatives
+
+### Tableau croisé
+
+```{r}
+tb <- table(dt$dipl_c, dt$sexe)
+tb
+```
+
+### Tableau croisé: structure
+
+```{r}
+str(tb)
+```
+
+### Tableau croisé: marges
+
+```{r}
+addmargins(tb)
+```
+
+### Tableau croisé: fréquences
+```{r}
+# Fréquences du total;
+# Ajouter margin = 1 pour % ligne
+# Ajouter margin = 2 pour % colonne
+prop.table(tb)
+```
+
+### Tableau croisé: fréquences ligne
+
+```{r}
+library(questionr)
+lprop(tb)
+```
+
+### Tableau croisé: fréquences colonne
+
+```{r}
+cprop(tb)
+```
+
+### Test du $\chi^2$
+
+```{r}
+ct <- chisq.test(tb)
+ct
+```
+
+### Test du $\chi^2$: structure
+
+```{r}
+str(ct)
+```
+
+### Test du $\chi^2$: effectifs théoriques
+
+```{r}
+ct$expected
+```
+
+### Test du $\chi^2$: p value
+
+```{r}
+ct$p.value
+```
+
+### Test de Fisher
+
+```{r}
+# On produit un tableau croisé imaginaire avec
+# de très petits effectifs
+tb <- as.table(matrix(c(10, 9, 4, 1), nrow = 2))
+ft <- fisher.test(tb)
+ft
+```
+
+### Test de Fisher
+
+```{r}
+str(ft)
+ft$p.value
+```
+
+## Une variable quantitative, une variable qualitative
+
+### `tapply()`
+
+La fonction `tapply()` permet d'appliquer une fonction à un vecteur en le découpant selon les modalités d'un deuxième vecteur. Par exemple, si l'on souhaite appliquer la fonction `mean()` au revenus des artistes en les différenciant par niveau d'éducation, on peut écrire:
+
+```{r}
+# Les arguments sont dans le bon ordre
+# Vous pouvez omettre les noms d'arguments
+# qui sont rappelés parce que leur ordre
+# n'est pas intuitif
+tapply(X = dt$income, INDEX = dt$dipl_c, FUN = mean)
+```
+
+`tapply()` renvoie par défaut un vecteur unidimensionnel si le résultat de la fonction est une valeur unique (un vecteur de taille 1) ; il renvoie une liste avec des objets dont le nom correspond aux modalités de la variable INDEX sinon.
+
+### Représenter deux densités
+
+\btwocol
+```{r}
+dt <- dt[dt$income < 
+           100000, ]
+ids <- tapply(dt$income, 
+              dt$sexe, 
+              density)
+plot(ids$Female, col = "red")
+lines(ids$Male, col = "blue")
+```
+\etwocol
+
+### Boxplot multiple
+
+\btwocol
+```{r}
+boxplot(dt$income ~ dt$sexe)
+```
+\etwocol
+
+### Test de student
+
+```{r}
+tt <- t.test(dt$income ~ dt$sexe)
+tt
+```
+
+### Test de student
+On remarque que, par défaut, `t.test()` fait un test de Welch. On peut forcer un test de Student en ajoutant `var.equal = TRUE` (à condition évidemment que les variances soient bien égales).
+
+```{r}
+tapply(dt$income, dt$sexe, var)
+# Elles ne le sont pas...
+# t.test(dt$income ~ dt$sexe, var.equal=TRUE)
+```
+
+### Test de student
+Par défaut, le test est bilatéral. On peut réaliser un test unilatéral avec `alternative` ("less" pour un test unilatéral à gauche, "greater" pour un test unilatéral à droite)
+
+```{r}
+t.test(dt$income ~ dt$sexe, alternative = "less")
+```
+
+### Test de student
+```{r}
+tt$p.value
+```
+
+### Test de student
+
+On peut enfin comparer une moyenne à une moyenne théorique $\mu$.
+
+```{r}
+t.test(dt$income, mu=45000)
+```
+
