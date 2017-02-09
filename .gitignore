@@ -34,3 +34,15 @@ vignettes/*.pdf
 
 *.Rproj
 .Rproj.user
+
+S03_stat_fondam_files/
+Syllabus.md
+data/ACS_artists.Rdata
+data/GSS2014.DTA
+data/ICPSR_35529/
+data/eec15_dictionnaire.pdf
+data/eec15_eec15_dbase/
+data/eec2015.RData
+header.tex
+mails.txt
+planning.md
