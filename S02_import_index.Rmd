@@ -525,7 +525,7 @@ eec$diplome[eec$DIP11 == "71"] <- "Sans diplôme"
 
 ```{r}
 eec$diplome <- factor(eec$diplome, 
-                      labels = c("Sans diplôme", 
+                      levels = c("Sans diplôme", 
                                  "BEPC, CEP", 
                                  "CAP, BEP", 
                                  "Bac", 
@@ -605,15 +605,15 @@ merge(ouvrages, ecrivains,
 
 ```{r}
 merge(ouvrages, ecrivains, 
-      by.x="auteur", by.y="nom",
+      by="nom",
       all.x = TRUE)
 ```
 
 ### Ajouter des lignes à un data.frame
 
 ```{r}
-d1 <- hdv[1:10, ]
-d2 <- hdv[45:50, ]
+d1 <- hdv2003[1:10, ]
+d2 <- hdv2003[45:50, ]
 d3 <- rbind(d1, d2)
 ```
 
