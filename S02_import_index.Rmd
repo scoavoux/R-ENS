@@ -12,6 +12,11 @@ output:
       in_header: header.tex
 ---
 
+<!--
+oublis:
+appariements
+-->
+
 ```{r echo=FALSE,warning=FALSE}
 library(knitr)
 #opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE,fig.path='./Plot/plot-', comment="",fig.width=9,fig.height=7,fig.lp="",results="asis")
@@ -66,6 +71,7 @@ En gros, il y a deux grandes familles de format de données, que l'on repère pr
     - SAS : .sasb7dat
     - STATA : .dta
     - SPSS : .sav, .por
+    - Excel: .xls, .xlsx
 
 ### Que faut-il utiliser
 
@@ -73,7 +79,7 @@ En gros, il y a deux grandes familles de format de données, que l'on repère pr
 
 Texte brut => famille de fonctions `read.*()`
 
-Autre format => regarder dans les packages `foreign()` (R-base) et `haven()` (hadleyverse)
+Autre format => regarder dans les packages `foreign()` (R-base), `haven()` et `readxl()` (hadleyverse)
 
 ## La famille read
 
@@ -161,6 +167,19 @@ library(haven)
 + `read_spss()` SPSS 
 + `read_sas()` SAS
 
+### Excel
+
+Pour lire des données directement depuis les formats binaires d'Excel, .xls et .xlsx, il existe plusieurs packages. Le plus performant pour le moment est `readxl`.
+
+```{r, eval=FALSE}
+library(readxl)
+read_excel("./data/myfile.xlsx")
+# Si les données ne sont pas dans la première
+# feuille du document, on peut préciser sheet
+# l'argument header s'appelle col_names et il 
+# est TRUE par défaut
+read_excel("./data/myfile.xlsx", sheet=2)
+```
 
 ### Exploration d'une base de données
 
@@ -338,6 +357,35 @@ d$occup %in% c("Etudiant, eleve", "Retraite")
 d[d$occup %in% c("Etudiant, eleve", "Retraite"), ]
 ```
 
+### Cas des valeurs manquantes
+
+Les valeurs NA ne peuvent pas être testée comme les autres. utiliser `var == NA` n'a pas de sens. Il faut employer `is.na()`.
+
+```{r}
+# devrait renvoyer FALSE, FALSE, TRUE
+# à la place, renvoie NA, NA, NA
+c(12, 2, NA) == NA
+# on utilise donc is.na()
+is.na(c(12, 2, NA))
+```
+
+### Négation d'un vecteur logique
+
+Pour transformer tous les TRUE en FALSE dans un vecteur logique, il suffit d'employer la négation avec `!`:
+
+```{r}
+c(TRUE, FALSE, TRUE)
+!c(TRUE, FALSE, TRUE)
+```
+
+C'est particulièrement utile avec `is.na()` lorsque l'on souhaite sélectionner les valeurs *non manquantes*:
+
+```{r}
+x <- c(12, 2, NA)
+x[!is.na(x)]
+```
+
+
 ### Exercices
 
 On revient à la base de données `hdv2003` dans son intégralité.
@@ -509,8 +557,70 @@ eec$diplome_d <- factor(eec$diplome_d,
                         levels = unique(dic))
 ```
 
+### Concaténer deux vecteurs caractère
+
+On utilise `paste()` pour coller deux vecteurs caractères l'un à l'autre ; l'argument `sep` permet de définir ce qui les séparera (par défaut un espace, `" "`) ; `paste0(x)` est défini comme `paste(x, sep="")`.
+
+```{r}
+eec$dipl_sexe <- paste(eec$diplome_d, eec$SEXE)
+```
+
+## Appariements
+
+### Appariements
+
+Un appariement est une opération qui consiste à fusionner deux bases de données à partir d'un ou plusieurs identifiants communs. En base R, on utilise le plus souvent `merge()`. C'est particulièrement utile quand les données dont on dispose consistent en un ensemble de bases dont les observations sont de nature différentes.
+
+Dans l'exemple suivant, on a une base d'ouvrages et une base d'écrivains. Tous les ouvrages n'ont pas leur écrivains dans l'autre bases ; tous les écrivains n'ont pas d'ouvrages ; certains en ont plusieurs. Les variables ne sont pas les mêmes : on ne dispose du pays que de l'écrivain, pas de l'ouvrage. Comment réinsérer le pays dans la base ouvrages?
+
+```{r}
+ouvrages <- read.csv("./data/ouvrages.csv", stringsAsFactors = FALSE)
+ecrivains <- read.csv("./data/ecrivains.csv", stringsAsFactors = FALSE)
+```
+
+### Ouvrages
+```{r}
+ouvrages
+```
+
+### Écrivains
+```{r}
+ecrivains
+```
+
+### Merge
+```{r}
+merge(ouvrages, ecrivains, 
+      by.x="auteur", by.y="nom")
+```
+
+### Merge: noms identiques
+```{r}
+names(ouvrages)[1] <- "nom"
+merge(ouvrages, ecrivains, 
+      by="nom")
+```
+
+### Merge: toutes les lignes d'une base
+
+```{r}
+merge(ouvrages, ecrivains, 
+      by.x="auteur", by.y="nom",
+      all.x = TRUE)
+```
+
+### Ajouter des lignes à un data.frame
+
+```{r}
+d1 <- hdv[1:10, ]
+d2 <- hdv[45:50, ]
+d3 <- rbind(d1, d2)
+```
+
 ### Exercices
 
-1. Renommer les modalités de la variable catégorie socioprofessionnelle (1 chiffre).
+1. Renommez les modalités de la variable catégorie socioprofessionnelle (1 chiffre).
 2. **À partir de la variable `NAFG088UN`**, créez une variable de secteur économique prenant pour modalités "primaire", "secondaire" et "tertiaire".
+3. Créez une variable "Nombre de modes de recherche active d'emploi" (pour simplifier, à calculer seulement à partir de trois modes différents)
+4. Créez la variable "Nombre moyen d'heures travaillées par jour"
 
