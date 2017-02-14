@@ -504,3 +504,13 @@ On peut enfin comparer une moyenne à une moyenne théorique $\mu$.
 t.test(dt$income, mu=45000)
 ```
 
+### Exercices
+
+Les exercices portent sur la vague 7 de l'ESS (2014). Vous devez vous munir des données et du dictionnaire des codes.
+
+Choisissez deux variables parmi celles portant sur les conditions de vie, ainsi que les variables sociodémographiques suivante: age, nombre de personnes dans le foyer, genre, pays (pour les analyses bivariées, restreindre à seulement quelques pays).
+
+Décrivez de façon détaillez ces variables. Proposez au moins deux recodages des variables dépendantes (l'un quanti, l'autre quali) à partir de cette description.
+
+Cherchez les associations entre variables dépendantes et indépendantes.
+
