@@ -1,0 +1,207 @@
+---
+title: 'S04: Statistiques multivariées'
+subtitle: "Analyse de données quantitatives avec R"
+author: Samuel Coavoux
+output:
+  beamer_presentation:
+    toc: true
+    colortheme: beaver
+    highlight: tango
+    theme: Copenhagen
+    includes:
+      in_header: header.tex
+---
+
+```{r echo=FALSE,warning=FALSE}
+library(knitr)
+#opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE,fig.path='./Plot/plot-', comment="",fig.width=9,fig.height=7,fig.lp="",results="asis")
+opts_chunk$set(dev = 'pdf')
+options(width=50)
+
+# data
+load("data/ESS7e02_1.stata/ess7.RData")
+source("data/ess7_recodage.R")
+
+```
+
+# Modèles de regression
+
+## Régression linéaire: lm
+
+### Classe formule
+
+La fonction `lm()` (linear models) permet d'ajuster des modèles de régression linéaire.
+
+Elle prend comme premier argument un objet de classe **formule** ; la variable dépendante est précisée en premier, suivi d'un tilde (~), puis de l'interaction entre variables indépendantes.
+
++ L'interaction est habituellement précisée par `+` (dans le modèle linéaire classique: $Y = \alpha + \beta_1 X_1 + \beta_2 X_2$). 
++ On peut également ajouter, plutôt qu'une variable, l'interaction entre deux variables, en employant `:`. `x ~ a:b` revient à chercher $Y = \alpha + \beta_1 X_1 X_2$ (surtout utile pour les régressions logistiques, lorsque l'on cherche l'interaction entre deux facteurs corrélés). 
++ Enfin, `*` cherche à la fois l'addition et l'interaction. `x ~ a*b` est équivalent à `x ~ a + b + a:b`.
+
+### Classe formule
+
+On peut enfin transformer les variables directement dans une formule. Par exemple `x ~ a + log(b)`. Si l'on souhaite utiliser un terme réservé pour la classe formule comme `+`, il faut l'enclore dans `I()`. Ainsi, `x ~ a + b` prend a et b comme variable indépendante, alors que `x ~ I(a + b)` prend **la somme de a et b** comme variable indépendante.
+
+### lm()
+
+Pour éviter d'avoir à répéter le nom du data.frame pour chaque variable de la formule, on peut employer l'argument data. Ainsi, les deux notations ci-dessous sont équivalentes
+
+```{r, eval=FALSE}
+lm(imueclt ~ happy + income_dec, data=d)
+lm(d$imueclt ~ d$happy + d$income_dec)
+```
+
+L'argument `weights` permet de préciser un vecteur de pondération.
+
+### Explorer un modèle
+
+Par défaut, la méthode print des objets lm (`stats:::print.lm()`) donne assez peu d'informations : seulement les coefficients, et la commande employée pour produire le résultat. `summary.lm()` est beaucoup plus disert. On y obtient:
+
++ un summary des residu;
++ les coefficients avec l'erreur standard, la valeur t et la p-value associée au test de nullité;
++ quelques indicateurs de l'ajustement du modèle: R-squared, F, p-value;
++ le nombre de valeurs manquantes
+
+### Variables
+
+La variable dépendante doit être une variable numérique. lm() accepte des factor, mais c'est particulièrement déconseillée (en gros, la variable factor devrait être transformée en numérique, de sorte que votre variable dépendante sera discrète et prendra comme valeur 1 à k où k est le nombre de modalités).
+
+Les variables indépendantes peuvent être des factors. Dans ce cas, la première modalité (le premier level) sera considéré comme la modalité de référence, et les coefficients des autres modalités sera calculé. Pour changer de modalité de référence rapidement (c'est à dire pour passer un level en premier level d'un factor sans avoir à réécrire `factor(x, levels=c(liste des levels))`), on peut employer `relevel()`
+
+```{r, eval=FALSE}
+d$gndr <- relevel(d$gndr, ref = "Female")
+```
+
+
+### Explorer un modèle: print()
+
+```{r}
+ll <- lm(imueclt ~ happy + income_dec, data=d)
+print(ll)
+```
+
+### Explorer un modèle: summary()
+
+
+```{r, size="footnotesize"}
+summary(ll)
+```
+
+### Valeurs manquantes
+
+**Attention!** Par défaut, lm supprime les lignes de la base de données contenant une valeur manquantes. On peut facilement se retrouver, dans une enquête par questionnaire, à faire des régression sur quelques pourcents de l'échantillon si l'on ajoute trop de variables sans y prendre garde. Il convient donc de:
+
++ limiter le nombre de variables;
++ recoder en amont les NA autant que possible.
+
+### Explorer un modèle: plot()
+
+La fonction de base pour représenter graphiquement des modèles est la méthode `plot.lm()`. Par défaut, elle produit 4 graphiques (on peut en choisir un seul avec `which`:
+
++ un scatterplot des résidu par valeur prédite de $Y$ (1);
++ un diagramme Quantile-Quantile des résidu studentisé (2);
++ un scatterplot de la racine des résidu studentisé par valeur prédite de $Y$ (3);
++ un scatterplot des résidu studentisé pour les outliers (5).
+
+Ces graphs devraient permettre de faire un premier diagnostic sur l'ajustement du modèle : vérifier la normalité des résidus et l'homeoscédasticité du modèle.
+
+### Explorer un modèle: plot()
+
+```{r, fig.height=6}
+plot(ll, which = 1)
+```
+
+### Explorer un modèle: plot()
+
+```{r, fig.height=6}
+plot(ll, which = 2)
+```
+
+### Explorer un modèle: plot()
+
+```{r, fig.height=6}
+plot(ll, which = 3)
+```
+
+### Explorer un modèle: plot()
+
+```{r, fig.height=6}
+plot(ll, which = 5)
+```
+
+### Explorer un modèle: résultats de lm()
+
+```{r}
+names(ll)
+```
+
+### Accéder aux coefficients
+
+```{r}
+ll$coefficients
+```
+
+### Accéder aux résidus
+
+```{r}
+plot(density(ll$residuals))
+```
+
+### Accéder aux résidus
+
+```{r}
+plot(ll$fitted.values, ll$residuals)
+```
+
+
+## ANOVA
+
+### Anova
+
+Pour réaliser une ANOVA, on commence par ajuster un modèle linéaire.
+
+```{r}
+ma <- anova(lm(imueclt ~  cntry, data = d))
+
+```
+
+### Anova
+
+Contrairement à lm, `summary()` ne donne pas d'information intéressante, et il faut employer `print()` pour afficher les informations sur le test.
+
+```{r}
+ma
+```
+
+<!--
+## Autres modèles de régression
+
+### 
+Régression logistique/modèle généralisé
+
+# Analyse géométrique de données
+
+### Packages
+
+Il existe de nombreux packages pour réaliser des analyses géométriques de données. On utilisera `FactoMineR`, développé à Agrocampus Rennes.
+
+Vous pouvez également employer:
+
++ en base-R, `stats::factanal()` (analyse des correspondances) ou `stats::princomp()` (analyse en composantes principales)
++ Autre packages: `ca`, `ade4` (package pour les sciences environmentales développé à Lyon 1)
+
+## ACP
+
+## CA
+
+## ACM
+
+# Clustering
+
+## À partir d'une AGD: HCPC
+
+## Cluster d'individu: agnes, hclust
+
+## Cluster de varibales: ClustOfVar
+
+-->
