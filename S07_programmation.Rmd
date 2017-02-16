@@ -1,5 +1,5 @@
 ---
-title: 'S08: Programmation'
+title: 'S07: Programmation'
 subtitle: "Analyse de données quantitatives avec R"
 author: Samuel Coavoux
 output:
@@ -252,3 +252,14 @@ Intérêt de for/while:
 + plus proche d'autres langages de programmation, plus lisible
 
 La plupart du temps, privilégier boucles `apply` pour leur économie (pas créer d'objet).
+
+## Exercice
+
+1. Dans le jeu de données ESS7, recodez les variables testf1, testf2 et testf3 avec une boucle. Elles doivent devenir numérique, de 0 à 10, et toutes les valeurs manquantes pour quelque raison que ce soit doivent devenir NA.
+2. Écrire une fonction qui:
+    + prend comme arguments deux vecteurs character ou factor de même taille
+    + renvoie une liste contenant:
+        + un tableau croisé en effectif
+        + un tableau croisé en pourcentage en colonne (par défaut, doit pouvoir être supprimé)
+        + la p-value issue d'un test du khi-2 si aucune case du tableau des effectifs théoriques n'est inférieure à 5, la p-value issue d'un test de fisher sinon. (NB: vous aurez besoin de la fonction `any()` ; regardez l'aide)
+        + une indication du type de test utilisé
