@@ -55,6 +55,17 @@ eec$secteur <- cut(as.numeric(eec$NAFG088UN),
                    labels = c("Primaire", "Secondaire", "Tertiaire"))
 eec$secteur
 
-eec$nb_mode <- (eec$MRA == "1") + 
-  (eec$MRB == "1") + 
-  (eec$MRBBIS == "1")
+unique(eec$MRC)
+# Une solution
+eec$MRA_n[eec$MRA == "2" | is.na(eec$MRA)] <- 0
+eec$MRA_n[eec$MRA == "1"] <- 1
+
+# Une autre solution plus courte
+eec$MRA_n <- ifelse(eec$MRA == "1" & !is.na(eec$MRA), 1, 0)
+eec$MRB_n <- ifelse(eec$MRB == "1" & !is.na(eec$MRB), 1, 0)
+eec$MRC_n <- ifelse(eec$MRC == "1" & !is.na(eec$MRC), 1, 0)
+eec$nb_mode <- eec$MRA_n + eec$MRB_n + eec$MRC_n
+str(eec$nb_mode)
+
+eec$heures_travail_jour <- eec$HHCE / eec$JOURTR
+str(eec$heures_travail_jour)
