@@ -154,11 +154,18 @@ plot(ll$fitted.values, ll$residuals)
 ```
 
 
+### Accéder aux valeurs prédites
+
+```{r}
+residu <- ll$fitted.values - 
+  d$imueclt[complete.cases(d[, c("imueclt", "happy", "income_dec")])]
+```
+
 ## ANOVA
 
 ### Anova
 
-Pour réaliser une ANOVA, on commence par ajuster un modèle linéaire.
+Pour réaliser une ANOVA, on doit d'abord ajuster un modèle linéaire.
 
 ```{r}
 ma <- anova(lm(imueclt ~  cntry, data = d))
@@ -172,6 +179,105 @@ Contrairement à lm, `summary()` ne donne pas d'information intéressante, et il
 ```{r}
 ma
 ```
+
+## Régression logistique
+
+### Modèle linéaire généralisé: glm()
+
+La fonction `glm()` (Generalized Linear Model) permet de réaliser la plupart des régressions non-linéaires. Comme pour `lm()`, on donne le lien entre les variables dans une formule (dans laquelle on peut omettre le data.frame si l'on a précisé l'argument `data`), et on peut préciser un vecteur de pondération avec `weights`.
+
+Par défaut, `glm()` produit une régression linéaire. Pour changer cela, on doit préciser l'argument `family` (préciser la fonction de répartition de l'erreur ainsi que le lien entre les termes du modèle). Par défaut, la famille `binomial` a pour argument de lien `link = "logit"`. Il suffit donc, pour faire une régression logistique, d'appeler:
+
+```{r, eval = FALSE}
+glm(Y ~ X1 + X2, data=mydata, family = "binomial")
+# ce qui revient à:
+glm(Y ~ X1 + X2, data=mydata, family = binomial(link = "logit"))
+```
+
+### Modèle linéaire généralisé: glm()
+
+On ne voit dans ce cours que le modèle logit ; il suffit pour d'autres modèles de changer les arguments `family` et `link`. Voir l'aide de `family` pour cela.
+
+```{r, eval = FALSE}
+?family
+```
+
+Par exemple, pour un modèle probit:
+
+```{r, eval = FALSE}
+glm(Y ~ X1 + X2, data=mydata, family = binomial(link = "probit"))
+
+```
+
+### Régression logistique
+
+Pour une régression logistique, la variable dépendante doit être dichotomique. Elle peut être au format factor (alors, premier level = 0 et second level = 1 ; utiliser `relevel` pour le changer) ou numeric (0 ou 1). Si vous avez plus d'un niveau, **il n'y aura pas de message d'erreur** mais les coefficients n'auront pas grand sens.
+
+Pour les modèles logit multinomiaux, cf. le package `mlogit`
+
+### Régression logistique
+
+```{r}
+titanic <- read.csv("data/titanic.csv", stringsAsFactors = FALSE)
+titanic$Children <- ifelse(titanic$Age < 18, "Enfant", "Adulte")
+```
+
+
+### Quels déterminants de la survie?
+
+```{r}
+library(questionr)
+lprop(table(titanic$Children, titanic$Survived))
+```
+
+### Quels déterminants de la survie?
+
+```{r}
+lprop(table(titanic$Sex, titanic$Survived))
+```
+
+### Quels déterminants de la survie?
+
+```{r}
+lprop(table(titanic$PClass, titanic$Survived))
+```
+
+### Régression logistique
+
+```{r}
+gt <- glm(Survived ~ Children + Sex + PClass, 
+          data = titanic, 
+          family = "binomial")
+```
+
+### Régression logistique: exploration
+
+Comme pour lm, `print` donne peu d'information, et `summary` en donne beaucoup. `plot.glm()` produit les mêmes quatre graphiques que `plot.lm()`
+
+```{r}
+summary(gt)
+```
+
+### Régression logistique: odds ratio
+
+Pour calculer les odds ratio, on prend l'exponentiel du coefficient:
+
+```{r}
+exp(gt$coefficients)
+# Ou alors:
+# exp(coef(gt))
+```
+
+### Régression logistique: odds ratio
+
+La fonction `odds.ratio` de questionr permet de le faire en ajoutant un intervalle de confiance (que l'on peut spécifier avec `level`)
+
+```{r}
+odds.ratio(gt, level=.99)
+```
+
+
+
 
 <!--
 ## Autres modèles de régression
