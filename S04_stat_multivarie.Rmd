@@ -158,7 +158,8 @@ plot(ll$fitted.values, ll$residuals)
 
 ```{r}
 residu <- ll$fitted.values - 
-  d$imueclt[complete.cases(d[, c("imueclt", "happy", "income_dec")])]
+  d$imueclt[complete.cases(d[, c("imueclt", "happy", 
+                                 "income_dec")])]
 ```
 
 ## ANOVA
@@ -186,12 +187,13 @@ ma
 
 La fonction `glm()` (Generalized Linear Model) permet de réaliser la plupart des régressions non-linéaires. Comme pour `lm()`, on donne le lien entre les variables dans une formule (dans laquelle on peut omettre le data.frame si l'on a précisé l'argument `data`), et on peut préciser un vecteur de pondération avec `weights`.
 
-Par défaut, `glm()` produit une régression linéaire. Pour changer cela, on doit préciser l'argument `family` (préciser la fonction de répartition de l'erreur ainsi que le lien entre les termes du modèle). Par défaut, la famille `binomial` a pour argument de lien `link = "logit"`. Il suffit donc, pour faire une régression logistique, d'appeler:
+Par défaut, `glm()` produit une régression linéaire. Pour changer cela, on doit préciser l'argument `family` (préciser la fonction de répartition de l'erreur ainsi que le lien entre les termes du modèle). Par défaut, la famille `binomial` a pour argument de lien `link = "logit"`.
 
 ```{r, eval = FALSE}
 glm(Y ~ X1 + X2, data=mydata, family = "binomial")
 # ce qui revient à:
-glm(Y ~ X1 + X2, data=mydata, family = binomial(link = "logit"))
+glm(Y ~ X1 + X2, data=mydata, family = binomial(link = 
+                                                  "logit"))
 ```
 
 ### Modèle linéaire généralisé: glm()
@@ -205,7 +207,8 @@ On ne voit dans ce cours que le modèle logit ; il suffit pour d'autres modèles
 Par exemple, pour un modèle probit:
 
 ```{r, eval = FALSE}
-glm(Y ~ X1 + X2, data=mydata, family = binomial(link = "probit"))
+glm(Y ~ X1 + X2, data=mydata, family = binomial(link = 
+                                                  "probit"))
 
 ```
 
@@ -218,8 +221,11 @@ Pour les modèles logit multinomiaux, cf. le package `mlogit`
 ### Régression logistique
 
 ```{r}
-titanic <- read.csv("data/titanic.csv", stringsAsFactors = FALSE)
-titanic$Children <- ifelse(titanic$Age < 18, "Enfant", "Adulte")
+titanic <- read.csv("data/titanic.csv", 
+                    stringsAsFactors = FALSE)
+titanic$Children <- ifelse(titanic$Age < 18, 
+                           "Enfant", 
+                           "Adulte")
 ```
 
 
@@ -254,7 +260,7 @@ gt <- glm(Survived ~ Children + Sex + PClass,
 
 Comme pour lm, `print` donne peu d'information, et `summary` en donne beaucoup. `plot.glm()` produit les mêmes quatre graphiques que `plot.lm()`
 
-```{r}
+```{r, size="footnotesize"}
 summary(gt)
 ```
 
@@ -313,7 +319,7 @@ qfi_acp <- PCA(d_acp, quanti.sup = 7, quali.sup = 8,
 
 ### Eigenvalues
 
-```{r}
+```{r, fig.height=6}
 barplot(qfi_acp$eig$`percentage of variance`)
 ```
 
@@ -347,26 +353,26 @@ plot.PCA prend comme arguments:
 
 ### Variables, axes 1 et 2
 
-```{r}
+```{r, fig.height=6}
 plot.PCA(qfi_acp, axes = c(1, 2), choix = "var")
 ```
 
 ### Variables, axes 1 et 3
 
-```{r}
+```{r, fig.height=6}
 plot.PCA(qfi_acp, axes = c(1, 3), choix = "var")
 ```
 
 ### Individus, axes 1 et 2
 
-```{r}
-plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind")
+```{r, fig.height=6}
+plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind", label = "quali")
 ```
 
 ### Individus, axes 1 et 3
 
-```{r}
-plot.PCA(qfi_acp, axes = c(1, 3), choix = "ind")
+```{r, fig.height=6}
+plot.PCA(qfi_acp, axes = c(1, 3), choix = "ind", label = "quali")
 ```
 
 ### Contrôle de ce qui apparaît
@@ -380,14 +386,14 @@ Select peut prendre pour valeur soit un vecteur numérique ou de nom (seuls les 
 
 ### Supprimer les variables qualitatives (illustratives)
 
-```{r}
+```{r, fig.height=5}
 plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind",
-         invisible = "quali")
+         invisible = "quali", label = "none")
 ```
 
 ### Sélectionner par contribution
 
-```{r}
+```{r, fig.height=5}
 plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind",
          select = "contrib 20")
 ```
@@ -398,6 +404,8 @@ plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind",
 Par défaut, les fonctions de `FactoMineR` ignorent les valeurs manquantes (l'analyse est faite sur le sous-ensemble des individus pour lesquels toutes les variables sont renseignés).
 
 `missMDA` est un package développé par les mêmes concepteurs que FactoMineR, qui inclut différentes méthodes pour imputer les valeurs manquantes dans un jeu de données, à partir d'analyses géométriques. Le package s'utilise en deux étapes: on commence par estimer le nombre de dimensions à prendre en compte avec `estim_ncpPCA()` (remplacer PCA par MCA en cas d'ACM) ; puis on impute les valeurs manquantes avec `imputePCA()` (resp. `imputeMCA`). Attention, il ne faut le faire que pour les variables actives.
+
+### Valeurs manquantes
 
 ```{r missMDA, eval=FALSE}
 library(missMDA)
@@ -430,7 +438,7 @@ rel_ca <- CA(table(d$cntry, d$rlgdnm),
 
 ### Eigenvalues
 
-```{r}
+```{r, fig.height = 6}
 barplot(rel_ca$eig$`percentage of variance`)
 ```
 
@@ -464,13 +472,13 @@ cbind(rel_ca$col$coord[, 2],
 
 ### Diagramme, axes 1 et 2
 
-```{r}
+```{r, fig.height = 6}
 plot.CA(rel_ca, axes = c(1, 2))
 ```
 
 ### Diagramme, axes 3 et 4
 
-```{r}
+```{r, fig.height = 6}
 plot.CA(rel_ca, axes = c(3, 4))
 ```
 
@@ -488,7 +496,7 @@ trust_acm <- MCA(d_acm, quali.sup = 8:9, graph = FALSE)
 
 ### Eigenvalues
 
-```{r}
+```{r, fig.height = 6}
 barplot(trust_acm$eig$`percentage of variance`)
 ```
 
@@ -508,25 +516,65 @@ cbind(trust_acm$var$coord[, 2],
 
 ### Diagramme des modalités
 
-```{r}
+```{r, fig.height = 6}
 plot.MCA(trust_acm, choix = "ind", invisible = "ind")
 ```
 
 ### Nuage des individus
 
-```{r}
+```{r, fig.height = 6}
 plot.MCA(trust_acm, choix = "ind", 
          label = "var")
 ```
-
-<!--
 
 # Clustering
 
 ## À partir d'une AGD: HCPC
 
-## Cluster d'individu: agnes, hclust
+### HCPC
 
-## Cluster de varibales: ClustOfVar
+FactoMineR inclut une fonction de clustering spécialement conçue pour catégoriser à partir des résultats d'une analyse factorielle. `HCPC` (Hierarchical Clustering on Principle Components) classifie les individus (pour une analyse factorielle des correspondance, les lignes du tableau de contingence) à partir d'un algorithme agnes (agglomerative nesting).
 
--->
+HCPC fonctionne avec les trois types d'objets.
+
+### HCPC: interactif
+
+Par défaut, si l'on ne spécifie pas un nombre de clusters, `HCPC()` commence par représenter le dendrogramme et demander à l'utilisateur de cliquer à l'endroit où il souhaite couper, en indiquant par une ligne horizontale le lieu optimal.
+
+Il vaut mieux éviter cela. En effet, cela ne fonctionnera que dans un usage interactif ; si l'on a un usage programmatique, mieux vaut spécifier manuellement le nombre de cluster. On empêche ce comportement en spécifiant `graph = FALSE` et/ou en spécifiant un nombre de cluster avec `nb.clust`. Comme pour les autres AGD, `graph = FALSE` est la meilleure option ; on choisit alors le nombre optimal de clusters proposé par l'algorithme, et l'on peut toujours représenter le dendrogramme par la suite.
+
+### HCPC
+
+```{r, fig.height = 6}
+rel_hcpc <- HCPC(rel_ca, graph = FALSE)
+plot.HCPC(rel_hcpc, choice = "tree")
+```
+
+### HCPC
+
+À la vue du dendrogramme, on peut toujours souhaiter, a posteriori, couper l'arbre à un autre endroit.
+
+```{r, eval=FALSE}
+rel_hcpc <- HCPC(rel_ca, graph = FALSE, nb.clust = 3)
+```
+
+### HCPC: récupérer les clusters
+
+`rel_hcpc$data.clust` contient les données originales, auxquelles se sont ajoutés les clusters ; on peut alors les profiler en faisant, par exemple, des tableaux de contingence des variables supplémentaires par la variable clust.
+
+```{r}
+rel_hcpc$data.clust$clust
+```
+
+### HCPC: enrichir la représentation de l'AGD
+
+```{r, fig.height = 5}
+plot.HCPC(rel_hcpc, axes = c(1, 2), choice = "map",
+          draw.tree = FALSE)
+```
+
+### HCPC: plus de détails
+
+HCPC s'appuie sur la fonction `cluster::agnes()` ; cf. l'aide pour plus de détails. Vous pouvez notamment adapter la méthode et la métrique de calcul de la distance entre individus. On peut également utiliser `agnes()` pour faire des CAH directement sur un data.frame, sans passer par l'AGD.
+
+NB: une CAH s'appuie sur une matrice de dissimilarité de n lignes et n colonnes (pour n = nombre d'individus classifiés). Par conséquent, le temps de calcul et la puissance de l'ordinateur, en particulier en termes de RAM, peut devenir rapidement très important. (ici, ne pas essayer de faire HCPC sur les résultats de l'ACM ou de l'ACP précédentes).
