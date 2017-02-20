@@ -276,15 +276,6 @@ La fonction `odds.ratio` de questionr permet de le faire en ajoutant un interval
 odds.ratio(gt, level=.99)
 ```
 
-
-
-
-<!--
-## Autres modèles de régression
-
-### 
-Régression logistique/modèle généralisé
-
 # Analyse géométrique de données
 
 ### Packages
@@ -298,9 +289,237 @@ Vous pouvez également employer:
 
 ## ACP
 
+### Données
+
+```{r}
+library(FactoMineR)
+vars <- c(# actives
+          "qfimedu", "qfimlng", "qfimchr", 
+          "qfimwht", "qfimwsk", "qfimcmt",
+          "eduyrs",# Illus. quanti
+          "gndr" # Illus. quali
+          )
+d_acp <- d[, vars]
+
+```
+
+### ACP
+
+```{r}
+names(d_acp)
+qfi_acp <- PCA(d_acp, quanti.sup = 7, quali.sup = 8,
+               graph = FALSE)
+```
+
+### Eigenvalues
+
+```{r}
+barplot(qfi_acp$eig$`percentage of variance`)
+```
+
+### Extraire les valeurs des variables
+
+```{r}
+## Coordonnées et contribution de l'axe 1
+cbind(qfi_acp$var$coord[, 1], 
+      qfi_acp$var$contrib[, 1])
+```
+
+### Extraire les valeurs des variables
+
+```{r}
+## Coordonnées et contribution de l'axe 2
+cbind(qfi_acp$var$coord[, 2], 
+      qfi_acp$var$contrib[, 2])
+```
+
+### Graphiques
+
+L'intérêt de FactoMineR est d'avoir de bonnes méthodes de graph, avec beaucoup d'options. `plot()` renvoie à `plot.PCA()` pour un objet de classe PCA.
+
+Par défaut, si on lance `PCA(d_acp, graph = TRUE)`, deux graphiques sont représentés : le nuage des individus, et le diagramme des variables, pour les deux premiers axes. C'est utile pour l'usage interactif ; dans les scripts, mieux vaut laisser `graph=FALSE` et produire ensuite explicitement les graphiques.
+
+plot.PCA prend comme arguments:
+
++ x = un objet de classe PCA
++ axes = un vecteur numérique de taille 2 avec l'index des axes à représenter. Par défaut `c(1, 2)`: les deux premiers axes.
++ choix = "ind" pour les individus, "var" pour les variables.
+
+### Variables, axes 1 et 2
+
+```{r}
+plot.PCA(qfi_acp, axes = c(1, 2), choix = "var")
+```
+
+### Variables, axes 1 et 3
+
+```{r}
+plot.PCA(qfi_acp, axes = c(1, 3), choix = "var")
+```
+
+### Individus, axes 1 et 2
+
+```{r}
+plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind")
+```
+
+### Individus, axes 1 et 3
+
+```{r}
+plot.PCA(qfi_acp, axes = c(1, 3), choix = "ind")
+```
+
+### Contrôle de ce qui apparaît
+
+On peut limiter l'apparition des variables et individus de deux manières:
+
++ avec `invisible`, on peut limiter l'apparition des individus (resp. variables) actifs ou illustratifs
++ avec `select`, on peut ne sélectionner que certains individus/variables, sous condition, notamment, de leur contribution.
+
+Select peut prendre pour valeur soit un vecteur numérique ou de nom (seuls les ind/var. correspondants seront affichés), ou une sélectione par coordonnées, contribution, ou cosinus-carré. Dans ce cas, `select` est un vecteur character de taille 1 valant "paramètre nombre_à_afficher". Par exemple `param = "contrib 10"` affiche les 10 individus qui contribuent le plus au nuage sur les deux axes représentés ; `param = "cos2 20"` les 20 individus dont le cosinus-carré est le plus fort.
+
+### Supprimer les variables qualitatives (illustratives)
+
+```{r}
+plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind",
+         invisible = "quali")
+```
+
+### Sélectionner par contribution
+
+```{r}
+plot.PCA(qfi_acp, axes = c(1, 2), choix = "ind",
+         select = "contrib 20")
+```
+
+
+### Valeurs manquantes
+
+Par défaut, les fonctions de `FactoMineR` ignorent les valeurs manquantes (l'analyse est faite sur le sous-ensemble des individus pour lesquels toutes les variables sont renseignés).
+
+`missMDA` est un package développé par les mêmes concepteurs que FactoMineR, qui inclut différentes méthodes pour imputer les valeurs manquantes dans un jeu de données, à partir d'analyses géométriques. Le package s'utilise en deux étapes: on commence par estimer le nombre de dimensions à prendre en compte avec `estim_ncpPCA()` (remplacer PCA par MCA en cas d'ACM) ; puis on impute les valeurs manquantes avec `imputePCA()` (resp. `imputeMCA`). Attention, il ne faut le faire que pour les variables actives.
+
+```{r missMDA, eval=FALSE}
+library(missMDA)
+n <- estim_ncpPCA(d_acp[, 1:6])
+complete_obs <- imputePCA(d_acp[, 1:6], ncp = n)
+PCA(complete_obs)
+```
+
+### Généralisation
+
+Les autres techniques, AFC (`CA()`) et ACM (`MCA()`), fonctionnent exactement de la même manière que PCA : 
+
++ réduire la base aux seules variables utiles ;
++ imputer éventuellement les valeurs manquantes ;
++ produire l'analyse avec la fonction correspondante et `graph = FALSE` ;
++ graph des eigenvalues (`$eigen`) ; 
++ analyse des coordonnées et contributions (`$var`, `$ind` pour PCA et MCA ; `$row` et `$col` pour CA) ;
++ graphiques des axes retenus, pour les individus et pour les variables. 
+
 ## CA
 
+### Correspondance analysis
+
+CA prend en premier argument un tableau de contingence.
+
+```{r}
+rel_ca <- CA(table(d$cntry, d$rlgdnm), 
+             graph = FALSE)
+```
+
+### Eigenvalues
+
+```{r}
+barplot(rel_ca$eig$`percentage of variance`)
+```
+
+### Coordonnées et contribution des lignes
+
+```{r}
+cbind(rel_ca$row$coord[, 1], 
+      rel_ca$row$contrib[, 1])
+```
+
+### Coordonnées et contribution des lignes
+
+```{r}
+cbind(rel_ca$row$coord[, 2], 
+      rel_ca$row$contrib[, 2])
+```
+
+### Coordonnées et contribution des colonnes
+
+```{r}
+cbind(rel_ca$col$coord[, 1], 
+      rel_ca$col$contrib[, 1])
+```
+
+### Coordonnées et contribution des colonnes
+
+```{r}
+cbind(rel_ca$col$coord[, 2], 
+      rel_ca$col$contrib[, 2])
+```
+
+### Diagramme, axes 1 et 2
+
+```{r}
+plot.CA(rel_ca, axes = c(1, 2))
+```
+
+### Diagramme, axes 3 et 4
+
+```{r}
+plot.CA(rel_ca, axes = c(3, 4))
+```
+
 ## ACM
+
+### ACM
+
+```{r}
+d_acm <- d[, c("trstprl", "trstlgl", "trstplc", 
+               "trstplt", "trstprt", "trstep", 
+               "trstun", "gndr", "cntry")]
+d_acm <- d_acm[complete.cases(d_acm), ]
+trust_acm <- MCA(d_acm, quali.sup = 8:9, graph = FALSE)
+```
+
+### Eigenvalues
+
+```{r}
+barplot(trust_acm$eig$`percentage of variance`)
+```
+
+### Contribution et coordonnées
+
+```{r}
+cbind(trust_acm$var$coord[, 1],
+      trust_acm$var$contrib[, 1])
+```
+
+### Contribution et coordonnées
+
+```{r}
+cbind(trust_acm$var$coord[, 2],
+      trust_acm$var$contrib[, 2])
+```
+
+### Diagramme des modalités
+
+```{r}
+plot.MCA(trust_acm, choix = "ind", invisible = "ind")
+```
+
+### Nuage des individus
+
+```{r}
+plot.MCA(trust_acm, choix = "ind", 
+         label = "var")
+```
+
+<!--
 
 # Clustering
 
