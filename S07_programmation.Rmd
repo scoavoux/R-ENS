@@ -255,7 +255,7 @@ La plupart du temps, privilégier boucles `apply` pour leur économie (pas crée
 
 ## Exercice
 
-1. Dans le jeu de données ESS7, recodez les variables testf1, testf2 et testf3 avec une boucle. Elles doivent devenir numérique, de 0 à 10, et toutes les valeurs manquantes pour quelque raison que ce soit doivent devenir NA.
+1. Dans le jeu de données ESS7, recodez les variables trstprl, trstlgl, trstplc, trstplt, trstprt avec une boucle. Elles doivent devenir numérique, de 0 à 10, et toutes les valeurs manquantes pour quelque raison que ce soit doivent devenir NA.
 2. Écrire une fonction qui:
     + prend comme arguments deux vecteurs character ou factor de même taille
     + renvoie une liste contenant:
