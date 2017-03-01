@@ -378,7 +378,7 @@ library(dplyr)
 load("data/ACS_artists.Rdata")
 dt <- tbl_df(dt) # facultatif, facilite l'impression
 # Sélectionner les hommes
-filter(dt, sexe == "Male")
+filter(dt, sexe == "Male", income > 100000)
 ```
 
 ### Sélectionner des lignes: slice
@@ -525,5 +525,6 @@ group_by(dt, sexe) %>%
 
 ### Exercice
 
-Réécrire le fichier `ess7_recodage.R` avec `dplyr`.
+1. Réécrire le fichier `ess7_recodage.R` avec `dplyr`.
+2. Centrer et réduire la variable `qfimedu` **pays par pays** (variable cntry). Dans chaque pays, la moyenne doit être à 0 et l'écart-type à 1 (pour rappel, centrer et réduire une variable X consiste à créer une variable $Y (\mu = 0, \sigma = 1)$ telle que, pour tout i,  $y_i = \frac{x_i-\bar{x}}{\sigma_x}$)
 <!-- arrange -->
