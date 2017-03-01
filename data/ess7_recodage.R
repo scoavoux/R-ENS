@@ -48,6 +48,7 @@ d$fruit <- dic_fruits[d$etfruit]
 d$vegetables <- dic_fruits[d$eatveg]
 
 d$gndr[d$gndr == "No answer"] <- NA
+d <- d[!is.na(d$gndr), ]
 d$gndr <- factor(d$gndr)
 
 d$cntry <- factor(d$cntry)

@@ -253,10 +253,14 @@ Intérêt de for/while:
 
 La plupart du temps, privilégier boucles `apply` pour leur économie (pas créer d'objet).
 
-## Exercice
+## Exercices
 
 1. Dans le jeu de données ESS7, recodez les variables trstprl, trstlgl, trstplc, trstplt, trstprt avec une boucle. Elles doivent devenir numérique, de 0 à 10, et toutes les valeurs manquantes pour quelque raison que ce soit doivent devenir NA.
-2. Écrire une fonction qui:
+2. Généralisez la solution à toutes les échelles de likert de la base de donnée.
+
+## Exercices
+
+3. Écrire une fonction qui:
     + prend comme arguments deux vecteurs character ou factor de même taille
     + renvoie une liste contenant:
         + un tableau croisé en effectif

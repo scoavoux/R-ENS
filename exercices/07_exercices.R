@@ -20,6 +20,18 @@ rm(nom_trust, recodage_trst)
 ## sur **toutes** les likert scales de la basse
 ## de données ess7
 
+recodage_likert <- function(var, val_min, val_max, 
+                            max = "10"){
+  # var est factor ; transformer en character
+  var <- as.character(var)
+  # recoder les valeurs extrêmes
+  var[var == val_min] <- "0"
+  var[var == val_max] <- max
+  # transformer en numérique
+  var <- as.numeric(var)
+  return(var)
+}
+
 ## Question 2.
 
 an_stat <- function(vec1, vec2, col.rm = TRUE){
