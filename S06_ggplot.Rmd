@@ -443,11 +443,60 @@ spread(df, var, val)
 
 # Personnalisation
 
-## Titres
-
 ## Scales
 
-## Themes
+### Scales
+
+Les échelles (scales) sont des couches de ggplot qui précisent les transformations à appliquer aux axes, ainsi que les valeurs à indiquer. de ce fait, on les emploie à la fois :
+
++ pour opérer une transformation (échelle logarithmique par exemple)
++ pour choisir la numérotation d'axes continus
++ pour choisir les couleurs
+
+Toutes les fonctions de scales suivent le même modèle: scale_mapping_trans où mapping désigne la place de la variable (x, y, fill, color, etc.) et trans le type d'échelle à appliquer (continuous, discrete, log, etc.)
+
+### Transformer une échelle
+
+```{r, fig.height = 4}
+ggplot(d, aes(y = exp(imueclt), x = eduyrs)) + 
+  geom_line(stat="summary") +
+  scale_y_continuous(trans = "log", breaks = c(1, 10, 100, 1000))
+```
+
+### Renuméroter des axes
+
+```{r}
+ggplot(d, aes(y = imueclt, x = eduyrs)) + 
+  geom_line(stat="summary") +
+  scale_y_continuous(breaks = 0:8)
+```
+
+### Changer les couleurs
+
+Il est possible de spécifier des couleurs à la main, mais la solution préférable est d'utiliser colorbrewer et son implémentation R.
+
+Pour choisir un set de couleurs, aller sur <http://colorbrewer2.org>.
+
+Adapter votre set: continu pour une variable quantitative ou ordonnée, qualitative pour une variable catégorielle.
+
+### Changer les couleurs
+
+```{r}
+ggplot(dt, aes(x = key, y = mean, fill = key)) +
+  geom_col() + facet_wrap(~ cntry) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+## Themes et titres
+
+### Titres
+
+La fonction `labs()` permet de donner des titres au graphique et aux axes.
+
+```{r}
+
+```
+
 
 
 
