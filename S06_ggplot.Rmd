@@ -96,7 +96,8 @@ library(ggplot2)
 load("data/ESS7e02_1.stata/ess7.RData")
 source("data/ess7_recodage.R")
 library(dplyr)
-d <- filter(d, cntry %in% c("AT", "BE", "FI", "FR", "GB", "NL"), 
+d <- filter(d, cntry %in% c("AT", "BE", "FI", 
+                            "FR", "GB", "NL"), 
             eduyrs < 30)
 d <- tbl_df(d)
 ```
@@ -260,6 +261,9 @@ Dans certaines situations, il peut être utile de changer de fonction stat_. Les
 + lorsque l'on souhaite faire un barplot à partir de données agrégées et non brutes (donc à partir du tri à plat plutôt que du tableau croisé) => passe à stat_identity. Il y a alors deux façons de faire:
     - `geom_bar(stat="identity")` (classique) 
     - `geom_col()` variante de geom_bar avec un `stat="identity"` par défaut
+
+### stat_*
+
 + lorsque l'on souhaite faire un graphique en ligne résumant des tendances centrales à partir d'un jeu de données brutes. Dans ce cas:
     - soit on transforme les données d'abord (le plus simple; cf. la section suivante)
     - soit on emploie `geom_line(stat=stat_summary())`
@@ -316,21 +320,19 @@ Pour les graphiques simples, croisant deux ou trois variables seulement, et util
 
 Très souvent, pour ce faire, il faudra transformer le data.frame original d'un format large à un format long. Au début de ggplot2, ces opérations étaient souvent faites avec la fonction `aggregate` (en base-r) ou avec le package `reshape`; désormais, on emploie surtout `tidyr`, qui est l'héritier de reshape (comme `dplyr` hérite de `plyr`).
 
+### tidyr: principe
+
 + format large: c'est le format classique d'une base de donnée : une ligne est un individu, une colonne est une variable
 + format long : une ligne est **une observation**, c'est-à-dire un couple variable-valeur
 
-### Exemple de données larges et longues
-
-table: base large
+### Exemple de base large
 
  ID    Carac    Var2
 ----  -------  ------
  1       A      X
  2       B      Y
 
-### Exemple de données larges et longues
-
-table: base longue
+### Exemple de base longue
 
  key     value
 ------- -------
@@ -338,10 +340,10 @@ table: base longue
  ID      2
  Carac   A
  Carac   B
+ Var2    X
+ Var2    Y
 
-### Exemple de données larges et longues
-
-table: base longue
+### Exemple de base longue avec identifiant
 
  ID    key    value
 ---- ------- -------
@@ -374,7 +376,7 @@ Les trois variables seront transformées. On ne peut plus faire le lien entre le
 ```{r}
 select(d, imueclt, imbgeco, gndr) %>% 
   gather(var, val) %>% 
-  group_by(var) %>% slice(1:3)
+  group_by(var) %>% slice(1)
 ```
 
 ### Gather
@@ -384,46 +386,53 @@ On préserve une variable ; il devient possible de faire le lien entre cette var
 ```{r}
 select(d, imueclt, imbgeco, gndr) %>% 
   gather(var, val, -gndr) %>% 
-  group_by(var) %>% slice(1:3)
+  group_by(var) %>% slice(1)
 ```
 
-### Exemple: calcul d'erreur standard
+### Exemple
+
+Dans cet exemple, on souhaite préparer les données pour faire un graphique de toutes les variables qfi par cntry. Faire un graphique par variable et par pays revient à produire 36 graphiques. Comme on souhaite représenter, pour chaque variable, uniquement la moyenne et l'erreur standard, de façon à pouvoir les comparer dans chaque pays, on peut réduire cela à six graphiques, un par pays.
+
+### Exemple
+On commence par sélectionner les seules variables d'intérêt avec `select()`. Nous allons avoir besoin de faire des groupes pays+variable (des calculs différents par chaque association de pays+variable). Pour pouvoir faire cela, il nous faut une colonne pays et une colonne variable. On emploie donc d'abord gather().
 
 ```{r}
-dt <- select(d, imueclt, cntry) %>% 
-  gather(key, value, -cntry) %>% 
-  group_by(cntry) %>% 
-  filter(!is.na(value)) %>% 
-  summarize(mean = mean(value),
-            se = 1.96 * sd(value) / sqrt(n()))
+select(d, starts_with("qfi"), cntry) %>% 
+  gather(var, val, -cntry) %>% 
+  group_by(cntry, val)
 ```
 
-### Exemple: calcul d'erreur standard
 
-```{r, fig.height=4}
-ggplot(dt, aes(x = cntry, y = mean)) +
-  geom_col() + 
-  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width=.2)
+### Exemple
+
+Le data.frame résultant a des valeurs manquantes dans val (les valeurs non renseignés des variables qfi). On les supprime avec filter
+```{r}
+select(d, starts_with("qfi"), cntry) %>% 
+  gather(var, val, -cntry) %>% 
+  filter(!is.na(val))
 ```
 
-### Exemple: produire un barplot unique avec plusieurs variables
+### Exemple
+
+On peut désormais grouper les observation par cntry et var et calculer à chaque fois moyenne et erreur-type (pour rappel, pour un intervalle de confiance à .95, $1.96*\frac{\sigma_x}{\sqrt{n_x}}$). On stocke le résultat dans un nouvel objet.
 
 ```{r}
 dt <- select(d, starts_with("qfi"), cntry) %>% 
-  gather(key, value, -cntry) %>% 
-  group_by(cntry, key) %>% 
-  filter(!is.na(value)) %>% 
-  summarize(mean = mean(value),
-            se = 1.96 * sd(value) / sqrt(n()))
+  gather(var, val, -cntry) %>% 
+  filter(!is.na(val)) %>% 
+  group_by(cntry, var) %>% 
+  summarize(mean = mean(val),
+            se = 1.96 * sd(val) / sqrt(n()))
+
 ```
 
-### Exemple: produire un barplot unique avec plusieurs variables
+### Exemple
 
 ```{r, fig.height=4}
-ggplot(dt, aes(x = key, y = mean, fill = key)) +
-  geom_col() + 
-  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width=.2) +
-  facet_wrap(~ cntry)
+ggplot(dt, aes(x = var, y = mean, fill = var)) +
+  geom_col() + facet_wrap(~ cntry) +
+  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), 
+                width=.2)
 ```
 
 ### spread()
@@ -458,18 +467,72 @@ Toutes les fonctions de scales suivent le même modèle: scale_mapping_trans où
 ### Transformer une échelle
 
 ```{r, fig.height = 4}
-ggplot(d, aes(y = exp(imueclt), x = eduyrs)) + 
-  geom_line(stat="summary") +
-  scale_y_continuous(trans = "log", breaks = c(1, 10, 100, 1000))
+p <- ggplot(d, aes(y = exp(imueclt), x = eduyrs)) + 
+  geom_line(stat="summary")
+p
+```
+
+### Transformer une échelle
+```{r, fig.height=4}
+p + scale_y_continuous(trans = "log",
+                       breaks = c(1, 10, 100, 1000))
+```
+
+### Renuméroter des axes
+
+```{r, fig.height=4}
+p <- ggplot(d, aes(y = imueclt, x = eduyrs)) + 
+  geom_line(stat="summary")
+p
 ```
 
 ### Renuméroter des axes
 
 ```{r}
-ggplot(d, aes(y = imueclt, x = eduyrs)) + 
-  geom_line(stat="summary") +
-  scale_y_continuous(breaks = 0:8)
+p + scale_y_continuous(breaks = 0:8)
 ```
+
+### Changer des valeurs sur des axes discrets
+
+```{r, fig.height=4}
+p <- ggplot(dt, aes(x = var, y = mean, fill = var)) +
+  geom_col() + facet_wrap(~ cntry)
+p
+```
+
+### Changer des valeurs sur des axes discrets
+
+```{r}
+p + scale_x_discrete(labels = c("chr", "cmt", "edu", 
+                                "ing", "wht", "wsk"))
+```
+
+### Modifier le placement d'un axe
+
+```{r}
+p + scale_x_discrete(position = "top")
+```
+
+### Zoom: limiter un axe
+
+```{r, fig.height=4}
+pp <- ggplot(data = d, mapping = aes(x = eduyrs, y = imueclt)) + 
+  geom_point(position = "jitter")
+pp
+```
+
+### Zoom: limiter un axe
+
+```{r}
+pp  + ylim(3, 7)
+```
+
+### Zoom: limiter un axe
+
+```{r}
+pp  + xlim(10, 30)
+```
+
 
 ### Changer les couleurs
 
@@ -482,23 +545,94 @@ Adapter votre set: continu pour une variable quantitative ou ordonnée, qualitat
 ### Changer les couleurs
 
 ```{r}
-ggplot(dt, aes(x = key, y = mean, fill = key)) +
-  geom_col() + facet_wrap(~ cntry) +
-  scale_fill_brewer(palette = "Set1")
+p
 ```
+
+### Changer les couleurs
+
+```{r}
+p + scale_fill_brewer(palette = "Set1")
+```
+
 
 ## Themes et titres
 
 ### Titres
 
-La fonction `labs()` permet de donner des titres au graphique et aux axes.
+La fonction `labs()` permet de donner des titres au graphique et aux axes. Elle prend pour arguments les noms des différents mappings: x pour donner le label de l'axe des abcisses, y pour celui de l'axe des ordonnées, colour pour le label de la variable déterminant les groupes de couleurs, etc.
 
-```{r}
+On peut également préciser le titre (title) et le sous-titre (subtitle) du graphique. Il est déconseillé de le faire lorsque l'on produit un document écrit (le titre inclu directement dans le graph n'est pas cherchable => mieux vaut une légende spécifiée dans le langage employé pour la rédaction), mais cela peut-être utile pour des images isolées et/ou dans des slides.
 
+### Titres
+
+```{r, fig.height=4}
+p + labs(x = "Variables", y = "Moyenne",
+         fill = "Légende",
+         title = "Mon graphique")
 ```
 
+### Thèmes
 
+Les thèmes contiennent un ensemble d'instructions permettant de contrôler finement l'apparence du graphique. ggplot2 contient un ensemble de thèmes définis par défaut, la famille `theme_*()`.
 
+Le thème par défaut, employé si vous n'en spécifiez aucun autre, est `theme_grey()`. Il possède un fond gris avec des traits blancs pour les séparateurs sur les deux axes. Un autre thème populaire est `theme_bw()`, avec un fond blanc, mais toutes les autres avancées de ggplot.
 
+### Black & white
+
+```{r}
+p + theme_bw()
+```
+
+### Theme: personnaliser
+
+On peut par ailleurs personnaliser ces thèmes. On emploie pour cela la fonction `theme()`. `?theme` donne la liste de tout ce qu'il est possible de personnaliser.
+
+### Labels des axes
+
+```{r}
+p + theme(axis.text.x = 
+            element_text(angle = 60, hjust = 1))
+```
+
+### Labels des axes
+
+```{r}
+p + theme(axis.title = 
+            element_text(face = "italic"))
+```
+
+### Grille d'arrière plan
+
+```{r}
+p + theme(panel.grid.major.y = 
+            element_line(color="black"))
+```
+
+### Un plot complet
+
+```{r}
+# on part des données transformées, dt
+p <- ggplot(dt, aes(x = var, y = mean, fill = var)) +
+  geom_col() + 
+  facet_wrap(~ cntry) +
+  scale_fill_brewer(palette = "Set1") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=60, hjust=1),
+        panel.grid.major.y = element_line(color="black"),
+        panel.grid.major.x = element_blank()) +
+  labs(y = "Moyenne", fill = "Variables", x = "Variables")
+```
+
+### Un plot complet
+
+```{r}
+p
+```
+
+<!--
+## Exercices
+
+### Exercice
+-->
 
 
