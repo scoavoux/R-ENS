@@ -1,5 +1,5 @@
 ---
-title: 'S05: Fonctionnalités graphiques avancées'
+title: 'S06: Fonctionnalités graphiques avancées'
 subtitle: "Analyse de données quantitatives avec R"
 author: Samuel Coavoux
 output:
