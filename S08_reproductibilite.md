@@ -16,7 +16,7 @@ output:
 
 ### Knitr
 
-Markdown est un langage dit *markup* (HTML, Latex) conçu pour l'écriture web, et notamment pour les blogs. Il a donc vocation à être transformé en HTML. Son principe est d'être facile à lire. Le formatage est réduit au minimum, et toutes les instructions de format sont des signes de ponctuation.
+Markdown est un langage dit *markup* (HTML, \LaTeX) conçu pour l'écriture web, et notamment pour les blogs. Il a donc vocation à être transformé en HTML. Son principe est d'être facile à lire. Le formatage est réduit au minimum, et toutes les instructions de format sont des signes de ponctuation.
 
 Pandoc est un convertisseur universel de documents. Il est notamment employé pour transformer des documents markdown en d'autres formats, en particulier HTML, docx, et tex/pdf. Pandoc définit sa propre version de markdown, la plus adaptée à l'écriture universitaire (John McFarlane, son créateur, est professeur de philosophie à Berkeley).
 
@@ -222,7 +222,7 @@ Il existe deux types de notes, les notes inline et les notes pleines.
 
 ### Références
 
-Pandoc markdown et knitr comprennent les références bibliographiques. Pour cela, il faut lier un fichier au format bibtex (format bibliographique de latex) dans l'option bibliography du YAML front matter. Ensuite, on appel des références de la manière suivante:
+Pandoc markdown et knitr comprennent les références bibliographiques. Pour cela, il faut lier un fichier au format bibtex (format bibliographique de \LaTeX) dans l'option bibliography du YAML front matter. Ensuite, on appel des références de la manière suivante:
 
     Dans *La distinction* [@bourdieu1979]
 
@@ -238,7 +238,7 @@ Il existe de nombreuses manières de faire des tableaux, qui nous concernent peu
 
 ### Mathématiques
 
-Markdown supporte l'écriture de formules mathématiques avec la syntaxe de latex. Tout ce qui se trouve entouré d'un signe `$` est considéré comme une formule mathématique ; et de deux signes `$$`, comme une équation écrite sur une ligne à part
+Markdown supporte l'écriture de formules mathématiques avec la syntaxe de \LaTeX. Tout ce qui se trouve entouré d'un signe `$` est considéré comme une formule mathématique ; et de deux signes `$$`, comme une équation écrite sur une ligne à part
 
     L'erreur-standard est $z\frac{\sigma}{\sqrt{n}}$
 
@@ -269,8 +269,8 @@ Le front matter contient également des instructions de formatage pour knitr. La
 
 + html_document: le résultat est une page HTML, publiable sur le web;
 + word_document: le résultat est un document au format docx;
-+ pdf_document: le résultat est un document pdf, en passant par latex;
-+ beamer_presentation: le résultat est un fichier de slides au format pdf, en passant par beamer (classe de latex).
++ pdf_document: le résultat est un document pdf, en passant par \LaTeX;
++ beamer_presentation: le résultat est un fichier de slides au format pdf, en passant par beamer (classe de \LaTeX).
 
 ### YAML front matter
 
@@ -309,7 +309,7 @@ L'option de chunk `fig.cap` permet de donner un titre au graphique produit. (`fi
 
 ### Tableaux
 
-Pour les tableaux, l'opération est un peu plus compliquée que pour les graphiques. Par défaut, les tableaux (objets de classe table ou data.frame) ne sont pas très faciles à lire. On utilise habituellement un package qui transforme ces tableaux au format R en des objets au format markdown, html, ou latex (selon le type de document que l'on produit).
+Pour les tableaux, l'opération est un peu plus compliquée que pour les graphiques. Par défaut, les tableaux (objets de classe table ou data.frame) ne sont pas très faciles à lire. On utilise habituellement un package qui transforme ces tableaux au format R en des objets au format markdown, html, ou \LaTeX (selon le type de document que l'on produit).
 
 Le point commun de tous ces packages est qu'il nécessite l'option de chunk `results = "asis"`. Habituellement, on met cette option par défaut dans le premier chunk avec `opts_chunk$set(results = "asis)`.
 
@@ -319,7 +319,7 @@ Il existe de nombreux packages pour présenter des tableaux. Pour les résultats
 
 `stargazer(modele)` s'adapte au type de modèle (selon la fonction par laquelle il a été construit). `?stargazer_models` liste les modèles compatibles. 
 
-L'argument `type` permet de contrôler si la sortie doit être "latex" (par défaut), "html" (lorsque l'on produit un document html) ou "text" (utile lorsque l'on utilise stargazer dans un script plutôt que dans un document Rmarkdown).
+L'argument `type` permet de contrôler si la sortie doit être "\LaTeX" (par défaut), "html" (lorsque l'on produit un document html) ou "text" (utile lorsque l'on utilise stargazer dans un script plutôt que dans un document Rmarkdown).
 
 ### Présenter un modèle linéaire: stargazer
 
@@ -368,19 +368,80 @@ Pour les autres types de tableau, on peut utiliser une fonction du package `knit
     kable(cprop(table(df$var1, df$var2)), 
           cap = "Titre du tableau")
 
-Il existe également d'autres packages spécialisés, dont `pander` et `xtable`. `kable` et `pander` produisent des sorties au format markdown, qui ne supportent pas les tables complexes (par exemple, avec des cellules fusionnées entre deux lignes ou deux colonnes). Dans ce cas, on peut écrire ces tables directement en latex avec `xtable`.
+Il existe également d'autres packages spécialisés, dont `pander` et `xtable`. `kable` et `pander` produisent des sorties au format markdown, qui ne supportent pas les tables complexes (par exemple, avec des cellules fusionnées entre deux lignes ou deux colonnes). Dans ce cas, on peut écrire ces tables directement en \LaTeX avec `xtable`.
 
 # Aller plus loin avec knitr
 
 ## Écrire des slides
 
+### Moteurs de slides
+
+Pandoc est capable d'écrire des slides au format \LaTeX ou html:
+
++ \LaTeX : avec le package beamer;
++ html: au format ioslides ou slidy
+
+Ici, nous allons voir les slides au format beamer.
+
+### Beamer
+
+Il faut commencer par définir le type de document dans le YAML front matter:
+
+---
+output: beamer_presentation
+---
+
 ### Slides
 
-## Latex/HTML
+Ensuite, le document s'écrit comme un document normal. Pour commencer une nouvelle slide, il suffit de mettre un titre. Un titre vide produit une slide sans titre.
 
-## Aide
+    ### Une slide
 
-###
+    + avec des bulletpoints
+    + avec des bulletpoints
+    
+    ### 
+
+    + autre bulletpoint
+
+### Slides-levels
+
+Pandoc commence par déterminer quel niveau de titre correspond à un titre de slide. Les titres de niveau supérieur feront des sections, les titres de niveau inférieur des sous-titres dans une slide.
+
+Pour cela, pandoc considère que le niveau de titre le plus élevé après lequel on trouve autre chose qu'un autre titre est celui des slides.
+
+### Slides levels
+
+Ici, pandoc considérera que les titres de niveau 2 sont les titres de slide.
+
+    # Section
+    
+    ## Slide
+    
+    Du texte
+
+### Slides levels
+
+Ici, pandoc considérera que les titres de niveau 1 sont les titres de slide ; les titres de niveau 2 seront des sous-titres.
+
+
+    # Section
+
+    du texte
+    
+    ## Slide
+    
+    Du texte
+
+### Slides levels: conseil
+
+Habituellement, la convention suivante fonctionne bien avec les styles beamer, qui acceptent des sections et des sous-sections dans les slides:
+
++ titre de niveau 1: sections
++ titre de niveau 2: sous-sections
++ titre de niveau 3: slide
+
+### Aide
 
 <http://rmarkdown.rstudio.com/>
 
