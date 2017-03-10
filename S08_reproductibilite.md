@@ -101,8 +101,8 @@ Cela signifie qu'un document rmarkdown doit être **entièrement autosuffisant**
 En pratique, lors de l'écriture d'un document rmarkdown, on peut s'assurer de la cohérence du code en executant les chunks un par un. Pour cela, on peut soit:
 
 + utiliser ctrl+entrée qui envoie la ligne dans la console comme dans un script R normal;
-+ utiliser ctrl+shift+c qui execute l'ensemble du chunk actuel;
-+ utiliser ctrl+shift+n qui execute l'ensemble du prochain chunk (en répétant cette commande depuis le début du document, on execute tout);
++ utiliser ctrl+alt+c qui execute l'ensemble du chunk actuel;
++ utiliser ctrl+alt+n qui execute l'ensemble du prochain chunk (en répétant cette commande depuis le début du document, on execute tout);
 + cliquer sur la flèche vers le bas, en haut à droite de chaque chunk, pour executer tous les chunks précédents.
 
 ### Inline code
